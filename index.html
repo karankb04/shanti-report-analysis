@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rapport SEO & Trafic — Shanti Travel</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,560&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F7F5F0;--card:#FFFFFF;--ink:#20303A;--ink2:#46555E;
+  --muted:#75818A;--line:#E5E0D5;--line2:#EFEBE2;
+  --teal:#14635C;--teal-soft:#E3EEEC;--gold:#B98A24;--gold-soft:#F6EEDC;
+  --up:#177A52;--up-soft:#E4F2EB;--down:#BC4A33;--down-soft:#F8E9E5;
+  --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:'Archivo',sans-serif;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.num{font-variant-numeric:tabular-nums}
+header{position:sticky;top:0;z-index:50;background:rgba(247,245,240,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.topbar{max-width:1240px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.brand .eyebrow{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);font-weight:600}
+.brand h1{font-family:'Fraunces',serif;font-weight:560;font-size:21px;letter-spacing:-.01em}
+.brand h1 em{font-style:italic;color:var(--teal)}
+.spacer{flex:1}
+.month-switch{display:flex;border:1px solid var(--line);border-radius:999px;background:var(--card);padding:3px;gap:2px}
+.month-switch button{border:0;background:transparent;font-family:'Archivo';font-size:13px;font-weight:600;color:var(--muted);padding:7px 18px;border-radius:999px;cursor:pointer;transition:all .18s}
+.month-switch button.active{background:var(--ink);color:#fff}
+.shell{max-width:1240px;margin:0 auto;padding:26px 24px 80px;display:grid;grid-template-columns:178px 1fr;gap:34px}
+@media(max-width:1020px){.shell{grid-template-columns:1fr}}
+.route{position:sticky;top:86px;align-self:start}
+@media(max-width:1020px){.route{display:none}}
+.route ol{list-style:none;position:relative}
+.route ol::before{content:"";position:absolute;left:5px;top:10px;bottom:10px;border-left:2px dotted #C9C2B2}
+.route li{position:relative;padding:7px 0 7px 24px}
+.route a{color:var(--muted);text-decoration:none;font-size:12.5px;font-weight:500;transition:color .15s}
+.route li::before{content:"";position:absolute;left:0;top:13px;width:12px;height:12px;border-radius:50%;background:var(--paper);border:2px solid #C9C2B2;transition:all .15s}
+.route li.active::before{background:var(--teal);border-color:var(--teal);box-shadow:0 0 0 4px var(--teal-soft)}
+.route li.active a{color:var(--ink);font-weight:600}
+.dest{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:10px;padding-left:24px}
+section{margin-bottom:46px;scroll-margin-top:92px}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px;flex-wrap:wrap}
+.sec-head h2{font-family:'Fraunces',serif;font-weight:560;font-size:24px}
+.sec-head .src{font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;font-weight:600}
+.sec-sub{color:var(--ink2);font-size:13px;margin-bottom:16px}
+.grid{display:grid;gap:14px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(168px,1fr))}
+.cols-2{grid-template-columns:1fr 1fr}
+.cols-3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:880px){.cols-2,.cols-3{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:0 1px 2px rgba(32,48,58,.04)}
+.card h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:12px}
+.card h3 .hint{letter-spacing:0;text-transform:none;font-weight:500;color:#9AA3AA;float:right}
+.kpi .label{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.kpi .value{font-family:'Fraunces',serif;font-weight:560;font-size:29px;letter-spacing:-.015em;margin:5px 0 4px}
+.kpi .value small{font-size:15px;color:var(--ink2);font-family:'Archivo';font-weight:500}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px}
+.delta.good{color:var(--up);background:var(--up-soft)}
+.delta.bad{color:var(--down);background:var(--down-soft)}
+.delta.flat{color:var(--muted);background:var(--line2)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:left;padding:7px 8px;border-bottom:1px solid var(--line)}
+td{padding:7px 8px;border-bottom:1px solid var(--line2);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right}
+td.path{font-size:12.5px;color:var(--ink2);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tbl-scroll{max-height:400px;overflow:auto;border:1px solid var(--line2);border-radius:8px}
+.tbl-scroll thead th{position:sticky;top:0;background:var(--card);z-index:2}
+.chip{display:inline-block;font-size:10.5px;font-weight:600;padding:1px 8px;border-radius:999px}
+.chip.brand{background:var(--gold-soft);color:var(--gold)}
+.chip.nb{background:var(--teal-soft);color:var(--teal)}
+.mv.up{color:var(--up);font-weight:700} .mv.down{color:var(--down);font-weight:700} .mv.flat{color:var(--muted)}
+.hbar-row{display:grid;grid-template-columns:140px 1fr 70px;align-items:center;gap:10px;padding:4px 0}
+.hbar-row .lab{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbar-row .val{font-size:12.5px;font-weight:600;text-align:right}
+.hbar{height:9px;border-radius:99px;background:var(--line2);overflow:hidden}
+.hbar i{display:block;height:100%;border-radius:99px;background:var(--teal)}
+.hbar i.alt{background:var(--gold)}
+.stamps{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 18px}
+.stamp{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 13px;font-size:11.5px;color:var(--ink2)}
+.stamp b{color:var(--ink);font-weight:600}
+.stamp .dot{width:7px;height:7px;border-radius:50%}
+.dot.ok{background:var(--up)} .dot.live{background:var(--teal)} .dot.off{background:#C2BBAA}
+.foot{font-size:11px;color:var(--muted);margin-top:10px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--ink2);margin-top:10px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.nodata{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:34px 18px;border:1.5px dashed var(--line);border-radius:10px;color:var(--muted);text-align:center}
+.nodata b{font-size:13.5px;color:var(--ink2);font-weight:600}
+/* Loading */
+#loadingScreen{position:fixed;inset:0;background:var(--paper);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.spinner{width:36px;height:36px;border:3px solid var(--line);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loadingScreen p{color:var(--ink2);font-size:14px}
+#loadingScreen .sub{color:var(--muted);font-size:12px}
+.err-box{background:#FEF2F0;border:1px solid #F5C6C0;border-radius:10px;padding:18px 22px;color:#7A2E24;max-width:560px;text-align:center;line-height:1.6}
+.err-box b{font-weight:700;display:block;margin-bottom:6px}
+</style>
+</head>
+<body>
+
+<div id="loadingScreen">
+  <div class="spinner"></div>
+  <p>Chargement du rapport…</p>
+  <span class="sub" id="loadStatus">Connexion au Google Sheet…</span>
+</div>
+
+<header>
+  <div class="topbar">
+    <div class="brand">
+      <span class="eyebrow">Shanti Travel · shantitravel.com</span>
+      <h1>Rapport mensuel <em>SEO &amp; Trafic</em></h1>
+    </div>
+    <div class="spacer"></div>
+    <div class="month-switch" id="monthSwitch"></div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="route">
+    <div class="dest">Itinéraire</div>
+    <ol id="routeNav">
+      <li data-t="overview"><a href="#overview">Vue d'ensemble</a></li>
+      <li data-t="vercel"><a href="#vercel">Trafic Vercel</a></li>
+      <li data-t="gsc"><a href="#gsc">Performance GSC</a></li>
+      <li data-t="ahrefs"><a href="#ahrefs">Ahrefs SEO</a></li>
+      <li data-t="links"><a href="#links">Backlinks &amp; Concurrents</a></li>
+      <li data-t="kw"><a href="#kw">Mots-clés</a></li>
+      <li data-t="ga4"><a href="#ga4">Google Analytics 4</a></li>
+    </ol>
+  </nav>
+  <main id="main"><div style="height:200px"></div></main>
+</div>
+
+<script>
+/* ================================================================
+   CONFIG — only thing that changes is the SHEET_ID each year
+   ================================================================ */
+const SHEET_ID = '18Hb5VIvNsbSRuVh9PNbhNlQ5PwI5AF5Zt_zlVaGDZ8w';
+
+/* ================================================================
+   HELPERS
+   ================================================================ */
+const fmt = n => n == null ? '—' : new Intl.NumberFormat('fr-FR').format(n);
+const fmtPct = (n, d=2) => n == null ? '—' : Number(n).toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d}) + ' %';
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+
+function delta(cur, prev, {invert=false, pts=false, dec=1, label=''}={}){
+  if(cur==null||prev==null) return '<span class="delta flat">— <span style="opacity:.6;font-weight:500">vs '+label+'</span></span>';
+  const diff = cur - prev;
+  if(Math.abs(diff)<1e-9) return '<span class="delta flat">= <span style="opacity:.6;font-weight:500">vs '+label+'</span></span>';
+  const good = invert ? diff<0 : diff>0;
+  const arrow = diff>0 ? '▲' : '▼';
+  let txt = pts
+    ? (diff>0?'+':'')+diff.toLocaleString('fr-FR',{maximumFractionDigits:dec})+' pt'
+    : (diff>0?'+':'')+(diff/prev*100).toLocaleString('fr-FR',{maximumFractionDigits:dec})+' %';
+  return '<span class="delta '+(good?'good':'bad')+'">'+arrow+' '+txt+' <span style="opacity:.6;font-weight:500">vs '+label+'</span></span>';
+}
+
+function kpiCard(label, valueHtml, deltaHtml){
+  return '<div class="card kpi"><div class="label">'+label+'</div><div class="value num">'+valueHtml+'</div>'+(deltaHtml||'')+'</div>';
+}
+
+function hbars(rows, max, alt){
+  return rows.map(r=>{
+    const w = max ? Math.max(1.5, r.v/max*100) : 0;
+    return '<div class="hbar-row"><div class="lab" title="'+esc(r.l)+'">'+esc(r.l)+'</div><div class="hbar"><i'+(alt?' class="alt"':'')+' style="width:'+w+'%"></i></div><div class="val num">'+r.txt+'</div></div>';
+  }).join('');
+}
+
+function donut(parts, size=128){
+  const total = parts.reduce((s,p)=>s+p.v,0); if(!total) return '';
+  const cols=['#14635C','#B98A24','#7FA8A1','#D8C28A','#46555E'];
+  const r=44, c=size/2, circ=2*Math.PI*r; let off=0, segs='';
+  parts.forEach((p,i)=>{
+    const len=p.v/total*circ;
+    segs+='<circle r="'+r+'" cx="'+c+'" cy="'+c+'" fill="none" stroke="'+cols[i%cols.length]+'" stroke-width="14" stroke-dasharray="'+(len-1.5)+' '+(circ-len+1.5)+'" stroke-dashoffset="'+(-off)+'" transform="rotate(-90 '+c+' '+c+')"/>';
+    off+=len;
+  });
+  const legend=parts.map((p,i)=>'<div><i style="background:'+cols[i%cols.length]+'"></i>'+esc(p.l)+' · <b class="num">'+p.txt+'</b></div>').join('');
+  return '<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap"><svg width="'+size+'" height="'+size+'">'+segs+'</svg><div class="legend" style="flex-direction:column;gap:7px">'+legend+'</div></div>';
+}
+
+function noData(msg){
+  return '<div class="nodata"><b>Données non disponibles</b><span>'+(msg||'Aucune donnée pour ce mois.')+'</span></div>';
+}
+
+function stampsBar(s, generated){
+  const it=(dot,name,val)=>'<span class="stamp"><span class="dot '+dot+'"></span>'+name+' · <b>'+val+'</b></span>';
+  return '<div class="stamps">'+
+    it('ok','Vercel', s.vercel||'export manuel')+
+    it('live','Search Console', s.gsc||'live MCP')+
+    it('live','Ahrefs', s.ahrefs||'live MCP')+
+    it('off','GA4','non connecté')+
+    it('live','Généré le', generated||'—')+
+  '</div>';
+}
+
+function moveChip(cur, prev){
+  if(prev==null) return '<span style="font-size:10px;font-weight:700;color:var(--teal)">NOUVEAU</span>';
+  const d=prev-cur;
+  if(d===0) return '<span class="mv flat">=</span>';
+  return d>0?'<span class="mv up">▲ '+d+'</span>':'<span class="mv down">▼ '+Math.abs(d)+'</span>';
+}
+
+/* ================================================================
+   FETCH FROM GOOGLE SHEET (published JSON API)
+   Tab name → data
+   ================================================================ */
+async function fetchTab(tabName){
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tabName)}`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('Tab not found: '+tabName);
+  const text = await res.text();
+  // Google wraps response in /*O_o*/ google.visualization.Query.setResponse(...)
+  const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+  return json;
+}
+
+/* Read an entire tab as array of {month,label,json} rows, parse the json column */
+async function fetchTabRows(tabName){
+  try {
+    const gviz = await fetchTab(tabName);
+    const rows = gviz.table.rows || [];
+    const out = {};
+    rows.forEach(function(r){
+      if(!r.c || !r.c[0] || !r.c[0].v) return;
+      const month = String(r.c[0].v);
+      const label = r.c[1] && r.c[1].v ? String(r.c[1].v) : month;
+      const jsonCell = r.c[2] && r.c[2].v ? r.c[2].v : null;
+      if(jsonCell){
+        try { out[month] = Object.assign({label:label}, JSON.parse(jsonCell)); }
+        catch(e){ console.warn('bad json in', tabName, month, e); }
+      }
+    });
+    return out;
+  } catch(e){
+    console.warn('fetchTabRows failed for', tabName, e);
+    return {};
+  }
+}
+
+/* Read the single-row shared tab */
+async function fetchShared(){
+  try {
+    const gviz = await fetchTab('shared');
+    const rows = gviz.table.rows || [];
+    // header row is row 0 in values but gviz strips it; data is first row
+    for(var i=0;i<rows.length;i++){
+      var cell = rows[i].c && rows[i].c[0] && rows[i].c[0].v;
+      if(cell && String(cell).charAt(0)==='{'){ return JSON.parse(cell); }
+    }
+    return null;
+  } catch(e){ console.warn('shared fetch failed', e); return null; }
+}
+
+/* ================================================================
+   RENDER SECTIONS
+   ================================================================ */
+function renderOverview(d, prev){
+  const v=d.vercel, g=d.gsc, a=d.ahrefs;
+  const pv=prev&&prev.vercel, pg=prev&&prev.gsc, pa=prev&&prev.ahrefs;
+  const P=prev?prev.label:'—';
+  if(!v||!g||!a) return '<section id="overview">'+noData('Données incomplètes pour ce mois.')+'</section>';
+
+  const gglRef = v.referrers&&v.referrers.find(r=>/google\.com/.test(r[0]));
+  return `
+  <section id="overview">
+    <div class="sec-head"><h2>Vue d'ensemble</h2><span class="src">Toutes sources</span></div>
+    ${stampsBar(d.stamps||{}, d.generated)}
+    <div class="grid kpis">
+      ${kpiCard('Visiteurs uniques', fmt(v.kpi.visitors), delta(v.kpi.visitors, pv&&pv.kpi.visitors, {label:P}))}
+      ${kpiCard('Pages vues', fmt(v.kpi.pageviews), delta(v.kpi.pageviews, pv&&pv.kpi.pageviews, {label:P}))}
+      ${kpiCard('Taux de rebond', fmtPct(v.kpi.bounce,0), delta(v.kpi.bounce, pv&&pv.kpi.bounce, {invert:true,pts:true,label:P}))}
+      ${kpiCard('Clics organiques', fmt(g.kpi.clicks), delta(g.kpi.clicks, pg&&pg.kpi.clicks, {label:P}))}
+      ${kpiCard('Impressions', fmt(g.kpi.impressions), delta(g.kpi.impressions, pg&&pg.kpi.impressions, {label:P}))}
+      ${kpiCard('Trafic estimé Ahrefs', fmt(a.kpi.traffic)+'<small> /mois</small>', delta(a.kpi.traffic, pa&&pa.kpi.traffic, {label:P}))}
+    </div>
+    <div class="grid cols-3" style="margin-top:14px">
+      <div class="card"><h3>Triangulation trafic organique</h3>
+        ${hbars([
+          {l:'Clics GSC', v:g.kpi.clicks, txt:fmt(g.kpi.clicks)},
+          {l:'Trafic Ahrefs', v:a.kpi.traffic, txt:fmt(a.kpi.traffic)},
+          {l:'Via google.com (Vercel)', v:gglRef?gglRef[1]:0, txt:fmt(gglRef?gglRef[1]:null)}
+        ], Math.max(g.kpi.clicks, a.kpi.traffic, gglRef?gglRef[1]:0))}
+      </div>
+      <div class="card"><h3>Top pages <span class="hint">Vercel · visiteurs</span></h3>
+        ${v.pages ? hbars(v.pages.slice(0,7).map(p=>({l:p[0],v:p[1],txt:fmt(p[1])})), v.pages[0][1]) : noData()}
+      </div>
+      <div class="card"><h3>Top referrers <span class="hint">Vercel · visiteurs</span></h3>
+        ${v.referrers ? hbars(v.referrers.slice(0,7).map(r=>({l:r[0],v:r[1],txt:fmt(r[1])})), v.referrers[0][1], true) : noData()}
+      </div>
+    </div>
+  </section>`;
+}
+
+function renderVercel(d, prev){
+  const v=d.vercel, pv=prev&&prev.vercel, P=prev?prev.label:'—';
+  if(!v) return '<section id="vercel"><div class="sec-head"><h2>Trafic Vercel</h2></div>'+noData('Pas encore de données Vercel dans le Sheet pour ce mois. Collez votre JSON dans l\'onglet vercel_'+d.month+'.')+'</section>';
+  return `
+  <section id="vercel">
+    <div class="sec-head"><h2>Trafic Vercel</h2><span class="src">Google Sheet (export manuel)</span></div>
+    <p class="sec-sub">Audience totale mesurée par Vercel Analytics — toutes sources confondues.</p>
+    <div class="grid kpis">
+      ${kpiCard('Visiteurs', fmt(v.kpi.visitors), delta(v.kpi.visitors, pv&&pv.kpi.visitors, {label:P}))}
+      ${kpiCard('Pages vues', fmt(v.kpi.pageviews), delta(v.kpi.pageviews, pv&&pv.kpi.pageviews, {label:P}))}
+      ${kpiCard('Pages / session', Number(v.kpi.pps).toLocaleString('fr-FR'), delta(v.kpi.pps, pv&&pv.kpi.pps, {pts:true,dec:2,label:P}))}
+      ${kpiCard('Taux de rebond', fmtPct(v.kpi.bounce,0), delta(v.kpi.bounce, pv&&pv.kpi.bounce, {invert:true,pts:true,label:P}))}
+      ${kpiCard('Part mobile', fmtPct(v.kpi.mobile,0), delta(v.kpi.mobile, pv&&pv.kpi.mobile, {pts:true,label:P}))}
+      ${kpiCard('Pays nº1', v.kpi.topCountry, '<span class="delta flat">'+(v.countries&&v.countries[0]?v.countries[0][2]:0)+' % des visiteurs</span>')}
+    </div>
+    <div class="grid cols-2" style="margin-top:14px">
+      <div class="card"><h3>Répartition appareils</h3>${donut(v.devices.map(x=>({l:x.l,v:x.v,txt:x.v+' %'})))}</div>
+      <div class="card"><h3>Pays <span class="hint">visiteurs</span></h3>
+        ${v.countries ? hbars(v.countries.slice(0,10).map(c=>({l:c[0],v:c[1],txt:fmt(c[1])})), v.countries[0][1]) : noData()}
+      </div>
+    </div>
+    <div class="grid cols-2" style="margin-top:14px">
+      <div class="card"><h3>Toutes les pages</h3>
+        <div class="tbl-scroll"><table><thead><tr><th>Page</th><th class="r">Visiteurs</th><th class="r">Pages vues</th></tr></thead><tbody>
+        ${(v.pages||[]).map(p=>'<tr><td class="path" title="'+esc(p[0])+'">'+esc(p[0])+'</td><td class="r num">'+fmt(p[1])+'</td><td class="r num">'+fmt(p[2])+'</td></tr>').join('')}
+        </tbody></table></div>
+      </div>
+      <div class="card"><h3>Referrers</h3>
+        <table><thead><tr><th>Source</th><th class="r">Visiteurs</th></tr></thead><tbody>
+        ${(v.referrers||[]).map(r=>'<tr><td>'+esc(r[0])+'</td><td class="r num">'+fmt(r[1])+'</td></tr>').join('')}
+        </tbody></table>
+      </div>
+    </div>
+  </section>`;
+}
+
+function renderGSC(d, prev){
+  const g=d.gsc, pg=prev&&prev.gsc, P=prev?prev.label:'—';
+  if(!g) return '<section id="gsc"><div class="sec-head"><h2>Performance GSC</h2></div>'+noData('Données GSC non encore disponibles pour ce mois.')+'</section>';
+  const b=g.branded||{};
+  return `
+  <section id="gsc">
+    <div class="sec-head"><h2>Performance GSC</h2><span class="src">Google Search Console (live MCP)</span></div>
+    <p class="sec-sub">Visibilité et clics dans la recherche Google — propriété https://www.shantitravel.com/</p>
+    <div class="grid kpis">
+      ${kpiCard('Clics', fmt(g.kpi.clicks), delta(g.kpi.clicks, pg&&pg.kpi.clicks, {label:P}))}
+      ${kpiCard('Impressions', fmt(g.kpi.impressions), delta(g.kpi.impressions, pg&&pg.kpi.impressions, {label:P}))}
+      ${kpiCard('CTR', fmtPct(g.kpi.ctr), delta(g.kpi.ctr, pg&&pg.kpi.ctr, {pts:true,dec:2,label:P}))}
+      ${kpiCard('Position moyenne', Number(g.kpi.position).toLocaleString('fr-FR'), delta(g.kpi.position, pg&&pg.kpi.position, {invert:true,pts:true,label:P}))}
+    </div>
+    <div class="grid cols-3" style="margin-top:14px">
+      <div class="card"><h3>Marque vs hors-marque</h3>
+        ${b.brand ? donut([{l:'Marque ('+b.brand.share+' %)',v:b.brand.clicks,txt:fmt(b.brand.clicks)},{l:'Hors-marque ('+b.nonbrand.share+' %)',v:b.nonbrand.clicks,txt:fmt(b.nonbrand.clicks)}]) : noData()}
+      </div>
+      <div class="card"><h3>Par appareil</h3>
+        <table><thead><tr><th>Appareil</th><th class="r">Clics</th><th class="r">CTR</th><th class="r">Pos.</th></tr></thead><tbody>
+        ${(g.devices||[]).map(x=>'<tr><td>'+x.l+'</td><td class="r num">'+fmt(x.clicks)+'</td><td class="r num">'+fmtPct(x.ctr)+'</td><td class="r num">'+Number(x.pos).toLocaleString('fr-FR')+'</td></tr>').join('')}
+        </tbody></table>
+      </div>
+      <div class="card"><h3>Par locale</h3>
+        ${g.locales ? hbars(g.locales.map(l=>({l:l.l+' · CTR '+fmtPct(l.ctr),v:l.clicks,txt:fmt(l.clicks)})), Math.max(...g.locales.map(l=>l.clicks))) : noData()}
+      </div>
+    </div>
+    <div class="grid cols-2" style="margin-top:14px">
+      <div class="card"><h3>Top requêtes <span class="hint">${(g.queries||[]).length} requêtes</span></h3>
+        <div class="tbl-scroll"><table><thead><tr><th>Requête</th><th></th><th class="r">Clics</th><th class="r">Impr.</th><th class="r">CTR</th><th class="r">Pos.</th></tr></thead><tbody>
+        ${(g.queries||[]).map(q=>'<tr><td>'+esc(q[0])+'</td><td><span class="chip '+(q[5]==='M'?'brand':'nb')+'">'+(q[5]==='M'?'marque':'hors-m.')+'</span></td><td class="r num">'+fmt(q[1])+'</td><td class="r num">'+fmt(q[2])+'</td><td class="r num">'+fmtPct(q[3])+'</td><td class="r num">'+Number(q[4]).toLocaleString('fr-FR')+'</td></tr>').join('')}
+        </tbody></table></div>
+      </div>
+      <div class="card"><h3>Top pages <span class="hint">${(g.pages||[]).length} pages</span></h3>
+        <div class="tbl-scroll"><table><thead><tr><th>Page</th><th>Loc.</th><th class="r">Clics</th><th class="r">Impr.</th><th class="r">CTR</th><th class="r">Pos.</th></tr></thead><tbody>
+        ${(g.pages||[]).map(q=>'<tr><td class="path" title="'+esc(q[0])+'">'+esc(q[0])+'</td><td>'+q[1]+'</td><td class="r num">'+fmt(q[2])+'</td><td class="r num">'+fmt(q[3])+'</td><td class="r num">'+fmtPct(q[4])+'</td><td class="r num">'+Number(q[5]).toLocaleString('fr-FR')+'</td></tr>').join('')}
+        </tbody></table></div>
+      </div>
+    </div>
+    <div class="grid cols-2" style="margin-top:14px">
+      <div class="card"><h3>Top pays</h3>
+        <div class="tbl-scroll" style="max-height:300px"><table><thead><tr><th>Pays</th><th class="r">Clics</th><th class="r">Impr.</th><th class="r">CTR</th><th class="r">Pos.</th></tr></thead><tbody>
+        ${(g.countries||[]).map(c=>'<tr><td>'+esc(c[0])+'</td><td class="r num">'+fmt(c[1])+'</td><td class="r num">'+fmt(c[2])+'</td><td class="r num">'+fmtPct(c[3])+'</td><td class="r num">'+Number(c[4]).toLocaleString('fr-FR')+'</td></tr>').join('')}
+        </tbody></table></div>
+      </div>
+      <div class="card"><h3>Opportunités CTR <span class="hint">impr. &gt; 5 000 · CTR &lt; 2 %</span></h3>
+        <div class="tbl-scroll" style="max-height:300px"><table><thead><tr><th>Page</th><th>Loc.</th><th class="r">Impr.</th><th class="r">CTR</th><th class="r">Gain estimé*</th></tr></thead><tbody>
+        ${(g.opportunities||[]).map(o=>'<tr><td class="path" title="'+esc(o[0])+'">'+esc(o[0])+'</td><td>'+o[1]+'</td><td class="r num">'+fmt(o[3])+'</td><td class="r num">'+fmtPct(o[4])+'</td><td class="r num" style="color:var(--teal);font-weight:600">+'+fmt(o[6])+'</td></tr>').join('')}
+        </tbody></table></div>
+        <div class="foot">* Clics supplémentaires si CTR atteignait 2 %.</div>
+      </div>
+    </div>
+  </section>`;
+}
+
+function renderAhrefs(d, prev){
+  const a=d.ahrefs, pa=prev&&prev.ahrefs, P=prev?prev.label:'—';
+  if(!a) return '<section id="ahrefs"><div class="sec-head"><h2>Ahrefs SEO</h2></div>'+noData('Données Ahrefs non disponibles pour ce mois.')+'</section>';
+  const b=a.buckets||{}, pb=pa&&pa.buckets;
+  const mkBuckets=(o,lbl)=>{
+    const tot=(o.top3||0)+(o.mid||0)+(o.low||0); if(!tot) return '';
+    const seg=(v,c)=>'<i style="display:inline-block;height:100%;width:'+(v/tot*100)+'%;background:'+c+'"></i>';
+    return '<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-bottom:4px"><span>'+lbl+'</span><span class="num">'+fmt(tot)+' mots-clés</span></div>'+
+      '<div style="height:18px;border-radius:6px;overflow:hidden;display:flex">'+seg(o.top3,'#14635C')+seg(o.mid,'#7FA8A1')+seg(o.low,'#D8D2C2')+'</div>'+
+      '<div class="legend"><div><i style="background:#14635C"></i>Top 3 · <b class="num">'+fmt(o.top3)+'</b></div><div><i style="background:#7FA8A1"></i>4–10 · <b class="num">'+fmt(o.mid)+'</b></div><div><i style="background:#D8D2C2"></i>11+ · <b class="num">'+fmt(o.low)+'</b></div></div></div>';
+  };
+  return `
+  <section id="ahrefs">
+    <div class="sec-head"><h2>Ahrefs SEO</h2><span class="src">Ahrefs (live MCP)</span></div>
+    <p class="sec-sub">Autorité du domaine, profil de liens et positions organiques France.</p>
+    <div class="grid kpis">
+      ${kpiCard('Trafic estimé', fmt(a.kpi.traffic)+'<small> /mois</small>', delta(a.kpi.traffic, pa&&pa.kpi.traffic, {label:P}))}
+      ${kpiCard('Domain Rating', a.kpi.dr, delta(a.kpi.dr, pa&&pa.kpi.dr, {pts:true,label:P}))}
+      ${kpiCard('Domaines référents', fmt(a.kpi.rd), delta(a.kpi.rd, pa&&pa.kpi.rd, {label:P}))}
+      ${kpiCard('Backlinks actifs', fmt(a.kpi.bl), delta(a.kpi.bl, pa&&pa.kpi.bl, {label:P}))}
+      ${kpiCard('Valeur trafic', fmt(a.kpi.cost)+'<small> $ / mois</small>', '<span class="delta flat">équiv. Google Ads</span>')}
+    </div>
+    <div class="grid cols-2" style="margin-top:14px">
+      <div class="card"><h3>Positions mots-clés FR <span class="hint">top 100 Google.fr</span></h3>
+        ${pb ? mkBuckets(pb, 'Mois précédent') : ''}
+        ${mkBuckets(b, 'Mois sélectionné')}
+      </div>
+      <div class="card"><h3>Mouvements</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--up);margin-bottom:8px">▲ Gains</div>
+            <table><thead><tr><th>Mot-clé</th><th class="r">Vol.</th><th class="r">Pos.</th></tr></thead><tbody>
+            ${(a.movers&&a.movers.up||[]).slice(0,10).map(m=>'<tr><td style="font-size:12px">'+esc(m[0])+'</td><td class="r num" style="font-size:12px">'+fmt(m[1])+'</td><td class="r"><span class="mv up">▲'+(m[2]-m[3])+'</span></td></tr>').join('')}
+            </tbody></table>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--down);margin-bottom:8px">▼ Pertes</div>
+            <table><thead><tr><th>Mot-clé</th><th class="r">Vol.</th><th class="r">Pos.</th></tr></thead><tbody>
+            ${(a.movers&&a.movers.down||[]).slice(0,10).map(m=>'<tr><td style="font-size:12px">'+esc(m[0])+'</td><td class="r num" style="font-size:12px">'+fmt(m[1])+'</td><td class="r"><span class="mv down">▼'+(m[3]-m[2])+'</span></td></tr>').join('')}
+            </tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>`;
+}
+
+function renderLinks(d){
+  const shared=d.shared||{};
+  const competitors=shared.competitors||[];
+  const refdomains=shared.refdomains||[];
+  const compMax=Math.max(...competitors.map(c=>c.traffic),1);
+  return `
+  <section id="links">
+    <div class="sec-head"><h2>Backlinks &amp; Concurrents</h2><span class="src">Ahrefs (live, données partagées)</span></div>
+    <div class="grid cols-2">
+      <div class="card"><h3>Domaines référents <span class="hint">top 25 par DR</span></h3>
+        <div class="tbl-scroll"><table><thead><tr><th>Domaine</th><th class="r">DR</th><th class="r">Dofollow</th><th class="r">Total</th></tr></thead><tbody>
+        ${refdomains.map(r=>'<tr><td>'+esc(r.d)+'</td><td class="r num">'+r.dr+'</td><td class="r num">'+r.df+'</td><td class="r num">'+r.l+'</td></tr>').join('')}
+        ${!refdomains.length ? '<tr><td colspan="4">'+noData()+'</td></tr>' : ''}
+        </tbody></table></div>
+      </div>
+      <div class="card"><h3>Concurrents <span class="hint">trafic organique FR estimé</span></h3>
+        ${hbars(competitors.map(c=>({l:(c.self?'● ':'')+c.d,v:c.traffic,txt:fmt(c.traffic)})), compMax)}
+        <table style="margin-top:14px"><thead><tr><th>Domaine</th><th class="r">DR</th><th class="r">Trafic FR</th><th class="r">Mots-clés</th><th class="r">Dom. réf.</th></tr></thead><tbody>
+        ${competitors.map(c=>'<tr'+(c.self?' style="background:var(--teal-soft)"':'')+'><td>'+esc(c.d)+(c.self?' <span class="chip nb">vous</span>':'')+'</td><td class="r num">'+c.dr+'</td><td class="r num">'+fmt(c.traffic)+'</td><td class="r num">'+fmt(c.kw)+'</td><td class="r num">'+fmt(c.rd)+'</td></tr>').join('')}
+        </tbody></table>
+      </div>
+    </div>
+  </section>`;
+}
+
+function renderKw(d, prev){
+  const k=d.kw, P=prev?prev.label:'—';
+  const tbl=rows=>'<div class="tbl-scroll"><table><thead><tr><th>Mot-clé</th><th class="r">Volume</th><th class="r">Trafic est.</th><th class="r">Pos.</th><th class="r">Évol.</th></tr></thead><tbody>'+
+    rows.map(r=>'<tr><td>'+esc(r[0])+'</td><td class="r num">'+fmt(r[1])+'</td><td class="r num">'+fmt(r[2])+'</td><td class="r num">'+r[3]+'</td><td class="r">'+moveChip(r[3],r[4])+'</td></tr>').join('')+
+  '</tbody></table></div>';
+  return `
+  <section id="kw">
+    <div class="sec-head"><h2>Mots-clés Ahrefs</h2><span class="src">Ahrefs (live MCP) · Google.fr</span></div>
+    ${k ? `<div class="grid cols-2">
+      <div class="card"><h3>Par trafic estimé</h3>${tbl(k.byTraffic||[])}</div>
+      <div class="card"><h3>Par volume de recherche <span class="hint">position ≤ 30</span></h3>${tbl(k.byVolume||[])}
+        <div class="foot">▲/▼ = variation vs ${P}. « Nouveau » = absent du top 100 le mois précédent.</div>
+      </div>
+    </div>` : noData('Le tableau mots-clés sera disponible à partir du prochain rapport complet.')}
+  </section>`;
+}
+
+function renderGA4(){
+  return `
+  <section id="ga4">
+    <div class="sec-head"><h2>Google Analytics 4</h2><span class="src">Coupler.io (à connecter)</span></div>
+    <p class="sec-sub">Sessions, conversions et comportement — en attente de la connexion du flux GA4.</p>
+    <div class="grid kpis">
+      ${kpiCard('Sessions','—','<span class="delta flat">en attente</span>')}
+      ${kpiCard('Utilisateurs','—','<span class="delta flat">en attente</span>')}
+      ${kpiCard("Taux d'engagement",'—','<span class="delta flat">en attente</span>')}
+      ${kpiCard('Conversions','—','<span class="delta flat">en attente</span>')}
+    </div>
+    <div style="margin-top:14px">${noData('Aucun dataset GA4 configuré dans Coupler.io. Une fois le flux créé, cette section affichera sessions, sources, conversions et entonnoirs par mois.')}</div>
+  </section>`;
+}
+
+/* ================================================================
+   CONTROLLER
+   ================================================================ */
+let MONTHS = [];   // [{key:'2026-05', label:'Mai 2026'}, ...]
+let STORE = {};    // {vercel:{month:data}, gsc:{...}, ahrefs:{...}, kw:{...}, shared:{...}}
+let CACHE  = {};   // key → assembled month object
+let current = null;
+
+function setStatus(msg){ document.getElementById('loadStatus').textContent = msg; }
+
+async function loadAllData(){
+  setStatus('Lecture des onglets de données…');
+  const [vercel, gsc, ahrefs, kw, shared] = await Promise.all([
+    fetchTabRows('vercel'),
+    fetchTabRows('gsc'),
+    fetchTabRows('ahrefs'),
+    fetchTabRows('keywords'),
+    fetchShared()
+  ]);
+  STORE = { vercel, gsc, ahrefs, kw, shared };
+}
+
+function loadMonth(key){
+  if(CACHE[key]) return CACHE[key];
+  const vercel = STORE.vercel[key] || null;
+  const gsc = STORE.gsc[key] || null;
+  const ahrefs = STORE.ahrefs[key] || null;
+  const kw = STORE.kw[key] || null;
+  const obj = { month:key,
+    label: (vercel&&vercel.label)||(gsc&&gsc.label)||key,
+    generated: (gsc&&gsc.generated)||new Date().toLocaleDateString('fr-FR'),
+    stamps: (gsc&&gsc.stamps)||{},
+    vercel:vercel, gsc:gsc, ahrefs:ahrefs, kw:kw, shared:STORE.shared };
+  CACHE[key] = obj;
+  return obj;
+}
+
+function render(key){
+  const d = loadMonth(key);
+  const months = MONTHS.map(m=>m.key);
+  const idx = months.indexOf(key);
+  const prevKey = idx>0 ? months[idx-1] : null;
+  const prev = prevKey ? loadMonth(prevKey) : null;
+
+  document.getElementById('main').innerHTML =
+    renderOverview(d, prev) +
+    renderVercel(d, prev) +
+    renderGSC(d, prev) +
+    renderAhrefs(d, prev) +
+    renderLinks(d) +
+    renderKw(d, prev) +
+    renderGA4();
+
+  document.querySelectorAll('#monthSwitch button').forEach(b=>
+    b.classList.toggle('active', b.dataset.k===key));
+
+  // scroll spy
+  if(window._obs) window._obs.disconnect();
+  const items = document.querySelectorAll('#routeNav li');
+  window._obs = new IntersectionObserver(entries=>{
+    entries.forEach(en=>{
+      if(en.isIntersecting) items.forEach(li=>li.classList.toggle('active',li.dataset.t===en.target.id));
+    });
+  },{rootMargin:'-40% 0px -55% 0px'});
+  document.querySelectorAll('section').forEach(s=>window._obs.observe(s));
+}
+
+async function init(){
+  try {
+    setStatus('Lecture de l\'index des mois…');
+    // The 'index' tab: month | label, one row per month
+    const gviz = await fetchTab('index');
+    const rows = gviz.table.rows;
+    MONTHS = rows
+      .filter(r=>r.c&&r.c[0]&&r.c[0].v)
+      .map(r=>({ key: String(r.c[0].v), label: r.c[1]&&r.c[1].v ? String(r.c[1].v) : String(r.c[0].v) }));
+
+    if(!MONTHS.length) throw new Error('Index tab is empty');
+
+    // Load every data tab in bulk (one fetch per source, all months at once)
+    await loadAllData();
+
+    // Build month switcher
+    const sw = document.getElementById('monthSwitch');
+    sw.innerHTML = MONTHS.map(m=>'<button data-k="'+m.key+'">'+m.label+'</button>').join('');
+    sw.addEventListener('click', e=>{
+      const b=e.target.closest('button'); if(!b) return;
+      current=b.dataset.k;
+      render(current);
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+
+    // Load latest month by default
+    current = MONTHS[MONTHS.length-1].key;
+    render(current);
+    document.getElementById('loadingScreen').style.display='none';
+
+  } catch(err){
+    console.error(err);
+    document.getElementById('loadingScreen').innerHTML =
+      '<div class="err-box"><b>Erreur de chargement</b>'+
+      'Impossible de lire le Google Sheet.<br><br>'+
+      '① Vérifiez que le Sheet est bien <b>publié</b> (Fichier → Partager → Publier sur le web).<br>'+
+      '② Vérifiez que l\'onglet <b>index</b> existe avec les mois listés.<br><br>'+
+      '<code style="font-size:11px">'+esc(err.message)+'</code></div>';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
