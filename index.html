@@ -149,7 +149,12 @@ footer{max-width:1240px;margin:0 auto;padding:0 24px 40px;color:var(--muted);fon
 /* ================================================================
    CONFIG — only thing that changes is the SHEET_ID each year
    ================================================================ */
-const SHEET_ID = '18Hb5VIvNsbSRuVh9PNbhNlQ5PwI5AF5Zt_zlVaGDZ8w';
+const SHEET_ID = '1_-FKu4Xb4OfG4JXe0VW8p8exhKsQ-INl0GtZO_259Y0';
+
+function setStatus(msg){
+  var el = document.getElementById('loadStatus');
+  if(el) el.textContent = msg;
+}
 
 /* ================================================================
    FETCH FROM GOOGLE SHEET (published JSON API)
