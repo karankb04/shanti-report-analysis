@@ -328,15 +328,17 @@ function stampsBar(s){
 
 /* ------------------ sections ------------------ */
 function secOverview(d){
-  const v=d.vercel, g=d.gsc, a=d.ahrefs, pv=v.prev, pg=g.prev, P=d.prevLabel;
-  const ggl = v.referrers.find(r=>/google\.com/.test(r[0]));
+  const v=d.vercel, g=d.gsc, a=d.ahrefs;
+  if(!v||!g||!a) return '<section id="overview"><div class="sec-head"><h2>Vue d\'ensemble</h2></div>'+noData('Données incomplètes : assurez-vous que les onglets vercel, gsc et ahrefs sont remplis pour ce mois.')+'</section>';
+  const pv=v.prev, pg=g.prev, P=d.prevLabel;
+  const ggl = v.referrers && v.referrers.find(r=>/google\.com/.test(r[0]));
   const triRows=[
     {l:"Impressions GSC", v:g.kpi.impressions, txt:fmt(g.kpi.impressions)},
     {l:"Clics organiques GSC", v:g.kpi.clicks, txt:fmt(g.kpi.clicks)},
     {l:"Trafic estimé Ahrefs", v:a.kpi.traffic, txt:fmt(a.kpi.traffic)},
     {l:"Visiteurs via google.com (Vercel)", v:ggl?ggl[1]:0, txt:fmt(ggl?ggl[1]:null)}
   ];
-  const triMax = Math.max(g.kpi.clicks, a.kpi.traffic, ggl?ggl[1]:0); /* log-ish: impressions barre séparée */
+  const triMax = Math.max(g.kpi.clicks, a.kpi.traffic, ggl?ggl[1]:0);
   return `
   <section id="overview">
     <div class="sec-head"><h2>Vue d'ensemble</h2><span class="src">Toutes sources</span></div>
@@ -367,7 +369,9 @@ function secOverview(d){
 }
 
 function secVercel(d){
-  const v=d.vercel, pv=v.prev, P=d.prevLabel;
+  const v=d.vercel;
+  if(!v||!v.kpi) return '<section id="vercel"><div class="sec-head"><h2>Trafic Vercel</h2></div>'+noData('Pas encore de données Vercel dans le Sheet pour ce mois. Collez votre JSON dans la sidebar.')+'</section>';
+  const pv=v.prev, P=d.prevLabel;
   return `
   <section id="vercel">
     <div class="sec-head"><h2>Trafic Vercel</h2><span class="src">Source : Google Sheet (export manuel)</span></div>
@@ -407,7 +411,9 @@ function secVercel(d){
 }
 
 function secGSC(d){
-  const g=d.gsc, p=g.prev, P=d.prevLabel, b=g.branded;
+  const g=d.gsc;
+  if(!g||!g.kpi) return '<section id="gsc"><div class="sec-head"><h2>Performance GSC</h2></div>'+noData('Données GSC non disponibles pour ce mois. Collez le JSON GSC dans la sidebar.')+'</section>';
+  const p=g.prev, P=d.prevLabel, b=g.branded||{};
   const locMax = Math.max(...g.locales.map(l=>l.clicks));
   return `
   <section id="gsc">
@@ -459,6 +465,7 @@ function secGSC(d){
 
 function secAhrefs(d){
   const a=d.ahrefs, P=d.prevLabel;
+  if(!a||!a.kpi) return '<section id="ahrefs"><div class="sec-head"><h2>Ahrefs SEO</h2></div>'+noData('Données Ahrefs non disponibles pour ce mois. Collez le JSON Ahrefs dans la sidebar.')+'</section>';
   const activeIdx = d.label==="Mai 2026" ? 2 : 1;
   return `
   <section id="ahrefs">
@@ -494,7 +501,9 @@ function secAhrefs(d){
 }
 
 function secLinks(d){
-  const compMax = Math.max(...SHARED.competitors.map(c=>c.traffic));
+  const competitors = (SHARED&&SHARED.competitors)||[];
+  const refdomains = (SHARED&&SHARED.refdomains)||[];
+  const compMax = competitors.length ? Math.max(...competitors.map(c=>c.traffic)) : 1;
   return `
   <section id="links">
     <div class="sec-head"><h2>Backlinks &amp; Concurrents</h2><span class="src">Source : Ahrefs (live, données au ${SHARED.generated})</span></div>
@@ -502,13 +511,13 @@ function secLinks(d){
     <div class="grid cols-2">
       <div class="card"><h3>Domaines référents <span class="hint">top 25 par DR · liens actifs</span></h3>
         <div class="tbl-scroll"><table><thead><tr><th>Domaine</th><th class="r">DR</th><th class="r">Liens dofollow</th><th class="r">Liens totaux</th></tr></thead><tbody>
-        ${SHARED.refdomains.map(r=>'<tr><td>'+esc(r.d)+'</td><td class="r num">'+r.dr+'</td><td class="r num">'+r.df+'</td><td class="r num">'+r.l+'</td></tr>').join("")}
+        ${refdomains.map(r=>'<tr><td>'+esc(r.d)+'</td><td class="r num">'+r.dr+'</td><td class="r num">'+r.df+'</td><td class="r num">'+r.l+'</td></tr>').join("")}
         </tbody></table></div>
         <div class="foot">Snapshot live des liens actifs — identique quel que soit le mois sélectionné.</div></div>
       <div class="card"><h3>Comparaison concurrents <span class="hint">trafic organique FR estimé</span></h3>
-        ${hbars(SHARED.competitors.map(c=>({l:(c.self?"● ":"")+c.d, v:c.traffic, txt:fmt(c.traffic)})), compMax)}
+        ${competitors.length ? hbars(competitors.map(c=>({l:(c.self?"● ":"")+c.d, v:c.traffic, txt:fmt(c.traffic)})), compMax) : noData('Données concurrents non disponibles.')}
         <table style="margin-top:14px"><thead><tr><th>Domaine</th><th class="r">DR</th><th class="r">Trafic FR</th><th class="r">Mots-clés FR</th><th class="r">Dom. réf.</th></tr></thead><tbody>
-        ${SHARED.competitors.map(c=>'<tr'+(c.self?' style="background:var(--teal-soft)"':'')+'><td>'+esc(c.d)+(c.self?' <span class="chip nb">vous</span>':'')+'</td><td class="r num">'+c.dr+'</td><td class="r num">'+fmt(c.traffic)+'</td><td class="r num">'+fmt(c.kw)+'</td><td class="r num">'+fmt(c.rd)+'</td></tr>').join("")}
+        ${competitors.map(c=>'<tr'+(c.self?' style="background:var(--teal-soft)"':'')+'><td>'+esc(c.d)+(c.self?' <span class="chip nb">vous</span>':'')+'</td><td class="r num">'+c.dr+'</td><td class="r num">'+fmt(c.traffic)+'</td><td class="r num">'+fmt(c.kw)+'</td><td class="r num">'+fmt(c.rd)+'</td></tr>').join("")}
         </tbody></table>
         <div class="foot">Liste de concurrents fournie. Trafic et mots-clés = top 100 Google.fr, estimation Ahrefs.</div></div>
     </div>
@@ -767,7 +776,7 @@ function renderAll() {
 
   // Temporarily expose SHARED-compatible object for v1 render functions
   const savedShared = window.SHARED;
-  window.SHARED = window.__SHARED = {
+  window.SHARED = {
     generated: d.generated || '',
     ahrefsTrend: d._ahrefsTrend || [],
     competitors: (d._shared && d._shared.competitors) || [],
