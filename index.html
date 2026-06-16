@@ -221,9 +221,10 @@ async function loadAllData(){
     fetchTabRows('ahrefs'),
     fetchTabRows('keywords'),
     fetchTabRows('ai'),
+    fetchTabRows('deep_analysis'),
     fetchShared()
   ]);
-  STORE = { vercel:results[0], gsc:results[1], ahrefs:results[2], kw:results[3], ai:results[4], shared:results[5] };
+  STORE = { vercel:results[0], gsc:results[1], ahrefs:results[2], kw:results[3], ai:results[4], deep:results[5], shared:results[6] };
 }
 
 function loadMonth(key){
@@ -237,6 +238,7 @@ function loadMonth(key){
     ahrefs: STORE.ahrefs[key] || null,
     kw:     STORE.kw[key] || null,
     ai:     STORE.ai[key] || null,
+    deep:   STORE.deep ? (STORE.deep[key] || null) : null,
     shared: STORE.shared };
   CACHE[key] = obj;
   return obj;
@@ -542,6 +544,125 @@ function secKw(d){
   </section>`;
 }
 
+function secDeep(d){
+  const da = d.deep;
+  if(!da||!da.summary) return `
+  <section id="deep">
+    <div class="sec-head"><h2>Analyse Approfondie</h2><span class="src">GSC × Ahrefs (cross-analyse mensuelle)</span></div>
+    ${noData("Demandez à Claude « run deep analysis [mois] » puis collez le JSON dans la sidebar → Analyse Approfondie.")}
+  </section>`;
+
+  const s = da.summary||{};
+  const leaks = da.leaks||[];
+  const cannis = da.cannibalization||[];
+  const opps = da.opportunities||[];
+
+  // Type colors & labels
+  const typeStyle = {
+    border_page1:     {c:'#BC4A33',bg:'#F8E9E5',l:'Border page 1'},
+    phantom_position: {c:'#B98A24',bg:'#F6EEDC',l:'Position fantôme'},
+    ctr_leak:         {c:'#1e6fa8',bg:'#deeaf7',l:'Fuite CTR'},
+    commercial_miss:  {c:'#14635C',bg:'#E3EEEC',l:'Opportunité commerciale'},
+    low_kd_stuck:     {c:'#7A5CB8',bg:'#EEE8F8',l:'KD faible bloqué'}
+  };
+  const statusStyle = {
+    open:        {c:'#BC4A33',bg:'#F8E9E5',l:'Ouvert'},
+    in_progress: {c:'#B98A24',bg:'#F6EEDC',l:'En cours'},
+    fixed:       {c:'#177A52',bg:'#E4F2EB',l:'Corrigé'},
+    captured:    {c:'#177A52',bg:'#E4F2EB',l:'Capturé'}
+  };
+  const kdStyle = (kd) => kd==null ? {c:'var(--muted)',bg:'var(--line2)'} : kd<=10 ? {c:'#177A52',bg:'#E4F2EB'} : kd<=30 ? {c:'#B98A24',bg:'#F6EEDC'} : {c:'#BC4A33',bg:'#F8E9E5'};
+  const chip2 = (o,t) => o ? '<span class="chip" style="color:'+o.c+';background:'+o.bg+'">'+t+'</span>' : '—';
+
+  // Sparkline data from all months
+  const monthKeys = MONTHS.map(m=>m.key);
+  const trendPts = monthKeys.map(function(k){
+    const md = STORE.deep && STORE.deep[k];
+    return { m: (MONTHS.find(m=>m.key===k)||{}).label||k, v: md&&md.summary ? md.summary.recoverable_clicks_current_positions : null };
+  });
+  const validTrend = trendPts.filter(p=>p.v!=null);
+
+  // Build horizontal bar chart SVG for leaks
+  const maxLeak = leaks.length ? Math.max(...leaks.map(l=>l.recoverable_clicks_mo)) : 1;
+  const leakBars = leaks.map(function(l){
+    const ts = typeStyle[l.opportunity_type]||{c:'#75818A',bg:'#EFEBE2',l:l.opportunity_type};
+    const w = Math.max(1.5, l.recoverable_clicks_mo/maxLeak*100);
+    return '<div style="margin-bottom:10px">' +
+      '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">' +
+        '<span style="color:var(--ink2)">'+esc(l.query)+' <span style="font-size:10.5px;color:var(--muted)">('+l.language+')</span></span>' +
+        '<span style="font-weight:700;color:'+ts.c+'">+'+fmt(l.recoverable_clicks_mo)+' clics/mois</span>' +
+      '</div>' +
+      '<div style="height:10px;background:var(--line2);border-radius:99px;overflow:hidden">' +
+        '<div style="height:100%;width:'+w+'%;background:'+ts.c+';border-radius:99px"></div>' +
+      '</div>' +
+      '<div style="font-size:10.5px;color:var(--muted);margin-top:2px">Pos. '+l.avg_position+' · '+fmt(l.impressions_90d)+' impr/90j · '+chip2(ts,ts.l)+'</div>' +
+    '</div>';
+  }).join('');
+
+  return `
+  <section id="deep">
+    <div class="sec-head"><h2>Analyse Approfondie</h2><span class="src">GSC × Ahrefs · ${esc(da.month||'')}</span></div>
+
+    <div style="border-left:3px solid var(--teal);background:var(--teal-soft);border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:18px;font-size:13px;color:var(--ink2)">
+      <b style="color:var(--teal)">Analyse croisée GSC × Ahrefs</b><br>
+      Cette analyse identifie les écarts entre ce que Google <em>sert</em> (données GSC réelles) et ce que le site <em>devrait</em> capturer (modèle Ahrefs). Les opportunités sont classées par type de blocage. Suivre l'évolution mois après mois permet de mesurer l'impact réel des corrections apportées.
+    </div>
+
+    <div class="grid kpis">
+      ${kpiCard("Clics récupérables (positions actuelles)", fmt(s.recoverable_clicks_current_positions)+"<small>/mois</small>", '<span class="delta flat">si CTR optimal à position actuelle</span>')}
+      ${kpiCard("Clics récupérables (border → #4)", fmt(s.recoverable_clicks_border_lifted)+"<small>/mois</small>", '<span class="delta flat">si border terms poussés en top 4</span>')}
+      ${kpiCard("Impressions sous-exploitées", fmt(s.total_impressions_underleveraged_90d)+"<small> /90j</small>", '<span class="delta flat">'+fmt(s.nb_leaks)+' fuites identifiées</span>')}
+      ${kpiCard("Problèmes identifiés", fmt((s.nb_leaks||0)+(s.nb_cannibalization_issues||0)+(s.nb_opportunities||0)), '<span class="delta flat">${s.nb_leaks||0} fuites · ${s.nb_cannibalization_issues||0} cannis · ${s.nb_opportunities||0} opps</span>')}
+    </div>
+
+    ${validTrend.length > 1 ? `<div class="card" style="margin-top:14px"><h3>Évolution des clics récupérables <span class="hint">mois après mois — doit décroître avec les corrections</span></h3>${sparkline(trendPts.map(function(p){ return {m:(p.m||'').split(' ')[0],v:p.v||0}; }), trendPts.length-1)}</div>` : ''}
+
+    <div class="card" style="margin-top:14px">
+      <h3>Fuites de clics <span class="hint">${leaks.length} keywords · classés par clics récupérables</span></h3>
+      ${leakBars}
+      <div class="legend" style="margin-top:14px">
+        ${Object.entries(typeStyle).map(function([k,v]){ return '<div><i style="background:'+v.c+'"></i>'+v.l+'</div>'; }).join('')}
+      </div>
+      <div class="tbl-scroll" style="margin-top:14px">
+        <table><thead><tr><th>Requête</th><th>Langue</th><th class="r">Impr. 90j</th><th class="r">Clics 90j</th><th class="r">Pos. moy.</th><th class="r">Clics récup./mois</th><th>Type</th><th class="r">Vol. Ahrefs</th><th class="r">KD</th></tr></thead><tbody>
+        ${leaks.map(function(l){
+          const ts=typeStyle[l.opportunity_type]||{c:'var(--muted)',bg:'var(--line2)',l:l.opportunity_type};
+          const kds=kdStyle(l.ahrefs_kd);
+          return '<tr><td>'+esc(l.query)+'</td><td>'+l.language+'</td><td class="r num">'+fmt(l.impressions_90d)+'</td><td class="r num">'+fmt(l.clicks_90d)+'</td><td class="r num">'+l.avg_position+'</td><td class="r num" style="font-weight:700;color:'+ts.c+'">+'+fmt(l.recoverable_clicks_mo)+'</td><td>'+chip2(ts,ts.l)+'</td><td class="r num">'+(l.ahrefs_volume?fmt(l.ahrefs_volume):'—')+'</td><td class="r">'+chip2(kds, l.ahrefs_kd!=null?String(l.ahrefs_kd):'—')+'</td></tr>';
+        }).join('')}
+        </tbody></table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h3>Cannibalisation d'URLs <span class="hint">${cannis.length} requêtes · compétition interne</span></h3>
+      <p style="font-size:12.5px;color:var(--ink2);margin-bottom:12px">Ces requêtes font l'objet d'une compétition interne entre plusieurs URLs, diluant l'autorité de chacune.</p>
+      <div class="tbl-scroll">
+        <table><thead><tr><th>Requête</th><th class="r">URLs en compét.</th><th>URL dominante</th><th class="r">Pos.</th><th>Action recommandée</th><th>Statut</th></tr></thead><tbody>
+        ${cannis.map(function(c){
+          const ss2=statusStyle[c.status]||{c:'var(--muted)',bg:'var(--line2)',l:c.status};
+          return '<tr><td>'+esc(c.query)+'</td><td class="r">'+c.nb_urls_competing+'</td><td class="path" title="'+esc(c.top_url||'')+'">'+esc(c.top_url||'—')+'</td><td class="r num">'+(c.top_url_position||'—')+'</td><td style="font-size:12px;color:var(--ink2);max-width:280px">'+esc(c.recommended_action)+'</td><td>'+chip2(ss2,ss2.l)+'</td></tr>';
+        }).join('')}
+        </tbody></table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h3>Opportunités prioritaires <span class="hint">${opps.length} keywords · triées par volume</span></h3>
+      <div class="tbl-scroll">
+        <table><thead><tr><th>Mot-clé</th><th>Langue</th><th class="r">Volume/mois</th><th class="r">KD</th><th class="r">Position</th><th class="r">Objectif</th><th class="r">Clics estimés/mois</th><th>Insight</th><th>Statut</th></tr></thead><tbody>
+        ${opps.map(function(o){
+          const ss2=statusStyle[o.status]||{c:'var(--muted)',bg:'var(--line2)',l:o.status};
+          const kds=kdStyle(o.ahrefs_kd);
+          return '<tr><td>'+esc(o.keyword)+'</td><td>'+esc(o.language)+'</td><td class="r num">'+fmt(o.ahrefs_volume)+'</td><td class="r">'+chip2(kds,o.ahrefs_kd!=null?String(o.ahrefs_kd):'—')+'</td><td class="r num">'+o.current_position+'</td><td class="r num">'+o.target_position+'</td><td class="r num" style="font-weight:700;color:var(--teal)">'+fmt(o.est_monthly_clicks_at_target)+'</td><td style="font-size:12px;color:var(--ink2);max-width:260px">'+esc(o.insight||'')+'</td><td>'+chip2(ss2,ss2.l)+'</td></tr>';
+        }).join('')}
+        </tbody></table>
+      </div>
+      <div class="foot">Clics estimés = volume Ahrefs × CTR benchmark à la position cible. KD : 0–10 vert · 11–30 ambre · 31+ rouge.</div>
+    </div>
+  </section>`;
+}
+
 function secAI(d){
   const ai = d.ai;
   if(!ai) return `
@@ -639,6 +760,7 @@ const PAGES = [
   {id:"ahrefs",   label:"Ahrefs SEO",         fn: (d,prev) => secAhrefs(d,prev)},
   {id:"links",    label:"Backlinks & Concurrents", fn: (d,prev) => secLinks(d,prev)},
   {id:"kw",       label:"Mots-clés Ahrefs",   fn: (d,prev) => secKw(d,prev)},
+  {id:"deep",     label:"Analyse Approfondie", fn: (d,prev) => secDeep(d,prev)},
   {id:"ai",       label:"Visibilité IA",       fn: (d,prev) => secAI(d,prev)},
   {id:"ga4",      label:"Google Analytics 4", fn: (d,prev) => secGA4(d,prev)}
 ];
