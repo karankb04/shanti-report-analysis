@@ -181,7 +181,22 @@ async function fetchTabRows(tabName){
       const label = r.c[1] && r.c[1].v ? String(r.c[1].v) : month;
       const jsonCell = r.c[2] && r.c[2].v ? r.c[2].v : null;
       if(jsonCell){
-        try { out[month] = Object.assign({label:label}, JSON.parse(jsonCell)); }
+        try {
+          // Google Sheets sometimes wraps JSON in outer quotes with "" escaping
+          // Try direct parse first, then strip outer quotes and unescape
+          let parsed;
+          try {
+            parsed = JSON.parse(jsonCell);
+          } catch(e1) {
+            // Strip outer quotes if present and unescape doubled quotes
+            let cleaned = String(jsonCell).trim();
+            if(cleaned.startsWith('"') && cleaned.endsWith('"')) {
+              cleaned = cleaned.slice(1,-1).replace(/""/g, '"');
+            }
+            parsed = JSON.parse(cleaned);
+          }
+          out[month] = Object.assign({label:label}, parsed);
+        }
         catch(e){ console.warn('bad json in', tabName, month, e); }
       }
     });
@@ -200,7 +215,15 @@ async function fetchShared(){
     // header row is row 0 in values but gviz strips it; data is first row
     for(var i=0;i<rows.length;i++){
       var cell = rows[i].c && rows[i].c[0] && rows[i].c[0].v;
-      if(cell && String(cell).charAt(0)==='{'){ return JSON.parse(cell); }
+      if(cell){
+        try {
+          let cleaned = String(cell).trim();
+          if(cleaned.startsWith('"') && cleaned.endsWith('"')) {
+            cleaned = cleaned.slice(1,-1).replace(/""/g, '"');
+          }
+          if(cleaned.startsWith('{')) return JSON.parse(cleaned);
+        } catch(e){}
+      }
     }
     return null;
   } catch(e){ console.warn('shared fetch failed', e); return null; }
