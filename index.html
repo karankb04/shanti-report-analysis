@@ -169,6 +169,21 @@ async function fetchTab(tabName){
   return json;
 }
 
+/* Convert gviz cell value to clean YYYY-MM string, handling date cells */
+function gvizToMonthKey(v){
+  if(!v) return null;
+  const s = String(v).trim();
+  // gviz date format: "Date(2026,4,1)" → month is 0-indexed → 2026-05
+  const dm = s.match(/^Date\((\d{4}),(\d{1,2}),\d+\)$/);
+  if(dm) return dm[1] + '-' + String(parseInt(dm[2])+1).padStart(2,'0');
+  // Already YYYY-MM
+  if(/^\d{4}-\d{2}$/.test(s)) return s;
+  // JS Date string fallback: "Fri May 01 2026..."
+  const d = new Date(s);
+  if(!isNaN(d.getTime())) return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  return null;
+}
+
 /* Read an entire tab as array of {month,label,json} rows, parse the json column */
 async function fetchTabRows(tabName){
   try {
@@ -177,7 +192,8 @@ async function fetchTabRows(tabName){
     const out = {};
     rows.forEach(function(r){
       if(!r.c || !r.c[0] || !r.c[0].v) return;
-      const month = String(r.c[0].v);
+      const month = gvizToMonthKey(r.c[0].v);
+      if(!month) return;
       const label = r.c[1] && r.c[1].v ? String(r.c[1].v) : month;
       const jsonCell = r.c[2] && r.c[2].v ? r.c[2].v : null;
       if(jsonCell){
@@ -962,7 +978,8 @@ async function init() {
     const rows = gviz.table.rows;
     MONTHS = rows
       .filter(function(r){ return r.c && r.c[0] && r.c[0].v; })
-      .map(function(r){ return { key: String(r.c[0].v), label: r.c[1] && r.c[1].v ? String(r.c[1].v) : String(r.c[0].v) }; });
+      .map(function(r){ const k=gvizToMonthKey(r.c[0].v); return k ? { key: k, label: r.c[1] && r.c[1].v ? String(r.c[1].v) : k } : null; })
+      .filter(Boolean);
 
     if (!MONTHS.length) throw new Error('Onglet index vide — ajoutez au moins un mois.');
 
