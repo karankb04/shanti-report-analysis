@@ -245,6 +245,28 @@ async function fetchShared(){
   } catch(e){ console.warn('shared fetch failed', e); return null; }
 }
 
+/* Read the GA4 tab — Coupler writes raw rows (not JSON in col C) */
+async function fetchGA4(){
+  try {
+    const gviz = await fetchTab('ga4');
+    if(!gviz||!gviz.table) return {};
+    const cols = (gviz.table.cols||[]).map(function(c){ return c.label||c.id||''; });
+    const dataRows = gviz.table.rows||[];
+    const out = {};
+    dataRows.forEach(function(r){
+      if(!r.c) return;
+      const obj = {};
+      cols.forEach(function(col,i){ obj[col] = r.c[i] ? r.c[i].v : null; });
+      const rawMonth = obj['Dimension: Report month'];
+      const monthKey = rawMonth ? gvizToMonthKey(rawMonth) : null;
+      if(!monthKey) return;
+      if(!out[monthKey]) out[monthKey] = { rows:[] };
+      out[monthKey].rows.push(obj);
+    });
+    return out;
+  } catch(e){ console.warn('fetchGA4 failed', e); return {}; }
+}
+
 /* ================================================================
    DATA STORE — one fetch per source tab, all months at once
    ================================================================ */
@@ -261,9 +283,10 @@ async function loadAllData(){
     fetchTabRows('keywords'),
     fetchTabRows('ai'),
     fetchTabRows('deep_analysis'),
+    fetchGA4(),
     fetchShared()
   ]);
-  STORE = { vercel:results[0], gsc:results[1], ahrefs:results[2], kw:results[3], ai:results[4], deep:results[5], shared:results[6] };
+  STORE = { vercel:results[0], gsc:results[1], ahrefs:results[2], kw:results[3], ai:results[4], deep:results[5], ga4:results[6], shared:results[7] };
 }
 
 function loadMonth(key){
@@ -278,6 +301,7 @@ function loadMonth(key){
     kw:     STORE.kw[key] || null,
     ai:     STORE.ai[key] || null,
     deep:   STORE.deep ? (STORE.deep[key] || null) : null,
+    ga4:    STORE.ga4  ? (STORE.ga4[key]  || null) : null,
     shared: STORE.shared };
   CACHE[key] = obj;
   return obj;
@@ -805,17 +829,91 @@ function secAI(d){
 }
 
 function secGA4(d){
+  const ga4 = d.ga4;
+  if(!ga4) return `
+  <section id="ga4">
+    <div class="sec-head"><h2>Google Analytics 4</h2><span class="src">Source : Coupler.io → Google Sheets</span></div>
+    ${noData("Données GA4 non disponibles pour ce mois. Vérifiez que Coupler.io a synchronisé l'onglet ga4 dans le Sheet.")}
+  </section>`;
+
+  // The ga4 tab stores raw Coupler rows directly (not as JSON) — each row is a page entry
+  // ga4 is already parsed as an object from the sheet; it may contain a 'rows' array
+  // or be a single month object with pages array
+  const rows = ga4.rows || [];
+
+  // Parse rows: [property, landing_page, month, new_users, total_users, sessions, engaged_sessions, engagement_rate, bounce_rate]
+  const pages = rows
+    .filter(function(r){ return r && r['Dimension: Landing page'] && r['Acquisition: Sessions'] > 0; })
+    .map(function(r){
+      return {
+        page: String(r['Dimension: Landing page']||'').trim(),
+        newUsers: Number(r['Acquisition: New users']||0),
+        users: Number(r['Acquisition: Total users']||0),
+        sessions: Number(r['Acquisition: Sessions']||0),
+        engaged: Number(r['Engagement: Engaged sessions']||0),
+        engRate: Number(r['Engagement: Engagement rate']||0),
+        bounce: Number(r['Performance: Bounce rate']||0)
+      };
+    })
+    .sort(function(a,b){ return b.sessions - a.sessions; });
+
+  if(!pages.length) return `
+  <section id="ga4">
+    <div class="sec-head"><h2>Google Analytics 4</h2><span class="src">Source : Coupler.io · Landing page performance</span></div>
+    ${noData("Aucune donnée de landing page trouvée pour ce mois dans l'onglet ga4.")}
+  </section>`;
+
+  // Aggregate KPIs
+  const totalSessions = pages.reduce(function(s,r){ return s+r.sessions; },0);
+  const totalUsers = pages.reduce(function(s,r){ return s+r.users; },0);
+  const totalNew = pages.reduce(function(s,r){ return s+r.newUsers; },0);
+  const avgEngRate = totalSessions ? pages.reduce(function(s,r){ return s+r.engaged; },0)/totalSessions : 0;
+  const avgBounce = 1 - avgEngRate;
+
+  const top15 = pages.slice(0,15);
+  const maxSess = top15[0] ? top15[0].sessions : 1;
+
+  const engColor = function(r){ return r >= 0.6 ? '#177A52' : r >= 0.35 ? '#B98A24' : '#BC4A33'; };
+  const bounceColor = function(r){ return r <= 0.4 ? '#177A52' : r <= 0.65 ? '#B98A24' : '#BC4A33'; };
+  const pct = function(v){ return (v*100).toFixed(1)+'%'; };
+
+  const pageRows = top15.map(function(r){
+    const w = Math.max(2, r.sessions/maxSess*100);
+    const label = r.page.replace('/fr/','').replace('/en/','').replace('/de/','') || r.page;
+    return '<tr>' +
+      '<td class="path" title="'+esc(r.page)+'">'+esc(r.page)+'</td>' +
+      '<td class="r num">'+fmt(r.sessions)+'</td>' +
+      '<td class="r num">'+fmt(r.users)+'</td>' +
+      '<td><div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:8px;background:var(--line2);border-radius:99px"><div style="height:100%;width:'+w+'%;background:var(--teal);border-radius:99px"></div></div><span class="num" style="min-width:36px;text-align:right;font-size:11px">'+fmt(r.sessions)+'</span></div></td>' +
+      '<td class="r num" style="color:'+engColor(r.engRate)+';font-weight:600">'+pct(r.engRate)+'</td>' +
+      '<td class="r num" style="color:'+bounceColor(r.bounce)+'">'+pct(r.bounce)+'</td>' +
+    '</tr>';
+  }).join('');
+
   return `
   <section id="ga4">
-    <div class="sec-head"><h2>Google Analytics 4</h2><span class="src">Source : Coupler.io (à connecter)</span></div>
-    <p class="sec-sub">Sessions, conversions et comportement utilisateur — en attente de la connexion du flux GA4.</p>
+    <div class="sec-head"><h2>Google Analytics 4</h2><span class="src">Source : Coupler.io · Landing page performance</span></div>
+    <p class="sec-sub">Performance par page d'entrée — sessions, utilisateurs, taux d'engagement et de rebond. Données issues du flux Coupler.io synchronisé sur l'onglet ga4.</p>
+
     <div class="grid kpis">
-      ${kpiCard("Sessions","—",'<span class="delta flat">en attente</span>')}
-      ${kpiCard("Utilisateurs","—",'<span class="delta flat">en attente</span>')}
-      ${kpiCard("Taux d'engagement","—",'<span class="delta flat">en attente</span>')}
-      ${kpiCard("Conversions","—",'<span class="delta flat">en attente</span>')}
+      ${kpiCard("Sessions totales", fmt(totalSessions), '<span class="delta flat">'+pages.length+' pages d\'entrée</span>')}
+      ${kpiCard("Utilisateurs", fmt(totalUsers), '<span class="delta flat">dont '+fmt(totalNew)+' nouveaux</span>')}
+      ${kpiCard("Taux d'engagement moyen", pct(avgEngRate), '<span class="delta '+(avgEngRate>=0.5?'good':'bad')+'">'+(avgEngRate>=0.5?'≥ 50% — bon signal':'< 50% — à améliorer')+'</span>')}
+      ${kpiCard("Taux de rebond moyen", pct(avgBounce), '<span class="delta '+(avgBounce<=0.5?'good':'bad')+'">'+(avgBounce<=0.5?'Engagement solide':'Sessions non engagées')+'</span>')}
     </div>
-    <div style="margin-top:14px">${noData("Aucun dataset GA4 n'est encore configuré dans Coupler.io. Une fois le flux créé (GA4 → Coupler.io), cette section affichera sessions, sources, conversions et entonnoirs par mois.")}</div>
+
+    <div class="note" style="margin-top:14px"><span class="tag">À noter</span><div>Le <b>taux d'engagement GA4</b> remplace le taux de rebond traditionnel. Une session est « engagée » si elle dure plus de 10 secondes, contient 2+ pages vues, ou déclenche un événement de conversion. Le taux de rebond GA4 = 1 − taux d'engagement.</div></div>
+
+    <div class="card" style="margin-top:14px">
+      <h3>Top 15 pages d'entrée <span class="hint">par sessions · taux d'engagement coloré vert ≥60% · ambre 35–60% · rouge &lt;35%</span></h3>
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th>Page d'entrée</th><th class="r">Sessions</th><th class="r">Utilisateurs</th><th>Volume relatif</th><th class="r">Taux d'engagement</th><th class="r">Taux de rebond</th></tr></thead>
+          <tbody>${pageRows}</tbody>
+        </table>
+      </div>
+      <div class="foot">Données Coupler.io · GA4 Landing page performance. Toutes pages confondues (FR/EN/DE). Taux d'engagement = sessions engagées / sessions totales.</div>
+    </div>
   </section>`;
 }
 
@@ -895,6 +993,7 @@ function assembleMonth(key) {
     kw: m.kw || null,
     ai: m.ai || null,
     deep: m.deep || null,
+    ga4: m.ga4 || null,
     _shared: shared,
     _ahrefsTrend: ahrefsTrend,
     _activeIdx: trendMonths.length - 1
