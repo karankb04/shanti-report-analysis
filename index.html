@@ -267,6 +267,29 @@ async function fetchGA4(){
   } catch(e){ console.warn('fetchGA4 failed', e); return {}; }
 }
 
+
+/* Read the ga4_channels tab — Coupler Monthly sources performance */
+async function fetchGA4Channels(){
+  try {
+    const gviz = await fetchTab('ga4_channels');
+    if(!gviz||!gviz.table) return {};
+    const cols = (gviz.table.cols||[]).map(function(c){ return c.label||c.id||''; });
+    const dataRows = gviz.table.rows||[];
+    const out = {};
+    dataRows.forEach(function(r){
+      if(!r.c) return;
+      const obj = {};
+      cols.forEach(function(col,i){ obj[col] = r.c[i] ? r.c[i].v : null; });
+      const rawMonth = obj['Report: Month'];
+      const monthKey = rawMonth ? gvizToMonthKey(rawMonth) : null;
+      if(!monthKey) return;
+      if(!out[monthKey]) out[monthKey] = { rows:[] };
+      out[monthKey].rows.push(obj);
+    });
+    return out;
+  } catch(e){ console.warn('fetchGA4Channels failed', e); return {}; }
+}
+
 /* ================================================================
    DATA STORE — one fetch per source tab, all months at once
    ================================================================ */
@@ -284,9 +307,10 @@ async function loadAllData(){
     fetchTabRows('ai'),
     fetchTabRows('deep_analysis'),
     fetchGA4(),
+    fetchGA4Channels(),
     fetchShared()
   ]);
-  STORE = { vercel:results[0], gsc:results[1], ahrefs:results[2], kw:results[3], ai:results[4], deep:results[5], ga4:results[6], shared:results[7] };
+  STORE = { vercel:results[0], gsc:results[1], ahrefs:results[2], kw:results[3], ai:results[4], deep:results[5], ga4:results[6], ga4ch:results[7], shared:results[8] };
 }
 
 function loadMonth(key){
@@ -302,6 +326,7 @@ function loadMonth(key){
     ai:     STORE.ai[key] || null,
     deep:   STORE.deep ? (STORE.deep[key] || null) : null,
     ga4:    STORE.ga4  ? (STORE.ga4[key]  || null) : null,
+    ga4ch:  STORE.ga4ch ? (STORE.ga4ch[key] || null) : null,
     shared: STORE.shared };
   CACHE[key] = obj;
   return obj;
@@ -830,15 +855,69 @@ function secAI(d){
 
 function secGA4(d){
   const ga4 = d.ga4;
+  const ga4ch = d.ga4ch;
+
+  // Channel color map
+  const chColors = {
+    'Organic Search': '#14635C',
+    'Direct': '#46859E',
+    'Paid Search': '#B98A24',
+    'Paid Social': '#7A5CB8',
+    'Organic Social': '#BC4A33',
+    'Referral': '#177A52',
+    'Email': '#1e6fa8',
+    'Cross-network': '#75818A',
+    'Unassigned': '#B0B0B0',
+    'Display': '#9C6B3A',
+    'Paid Other': '#C44D8A'
+  };
+
+  // Build channels section HTML
+  function buildChannels(){
+    if(!ga4ch||!ga4ch.rows||!ga4ch.rows.length) return noData("Données de sources de trafic non disponibles. Vérifiez que le dataflow Coupler.io 'Monthly sources performance' a été exécuté vers l'onglet ga4_channels.");
+    const chRows = ga4ch.rows
+      .filter(function(r){ return r['Engagement: Sessions'] > 0; })
+      .sort(function(a,b){ return b['Engagement: Sessions']-a['Engagement: Sessions']; });
+    const totalSess = chRows.reduce(function(s,r){ return s+r['Engagement: Sessions']; },0);
+    const maxSess = chRows[0] ? chRows[0]['Engagement: Sessions'] : 1;
+    const rows = chRows.map(function(r){
+      const ch = r['Session: Session default channel group']||'Other';
+      const col = chColors[ch]||'#75818A';
+      const sess = r['Engagement: Sessions']||0;
+      const users = r['Acquisition: Total users']||0;
+      const newU = r['Acquisition: New users']||0;
+      const bounce = r['Engagement: Bounce rate']||0;
+      const keyEv = r['Key event: Key events']||0;
+      const pct = totalSess ? (sess/totalSess*100).toFixed(1)+'%' : '—';
+      const w = Math.max(2, sess/maxSess*100);
+      return '<tr>'+
+        '<td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+col+';margin-right:6px"></span><b>'+esc(ch)+'</b></td>'+
+        '<td class="r num">'+fmt(sess)+'</td>'+
+        '<td><div style="display:flex;align-items:center;gap:5px"><div style="width:80px;height:7px;background:var(--line2);border-radius:99px"><div style="height:100%;width:'+w+'%;background:'+col+';border-radius:99px"></div></div><span style="font-size:11px;color:var(--muted)">'+pct+'</span></div></td>'+
+        '<td class="r num">'+fmt(users)+'</td>'+
+        '<td class="r num">'+fmt(newU)+'</td>'+
+        '<td class="r num" style="color:'+(bounce<=0.4?'#177A52':bounce<=0.65?'#B98A24':'#BC4A33')+'">'+(bounce*100).toFixed(1)+'%</td>'+
+        '<td class="r num" style="color:var(--teal);font-weight:600">'+fmt(keyEv)+'</td>'+
+      '</tr>';
+    }).join('');
+    // Donut chart data
+    const top5 = chRows.slice(0,5);
+    const donutParts = top5.map(function(r){
+      const ch = r['Session: Session default channel group']||'Other';
+      return { l:ch, v:r['Engagement: Sessions']||0, txt:fmt(r['Engagement: Sessions']||0) };
+    });
+    return '<div class="grid cols-2" style="margin-bottom:0">'+
+      '<div>'+donut(donutParts,140)+'</div>'+
+      '<div class="tbl-scroll"><table><thead><tr><th>Canal</th><th class="r">Sessions</th><th>Part</th><th class="r">Utilisateurs</th><th class="r">Nouveaux</th><th class="r">Rebond</th><th class="r">Key Events</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    '</div>';
+  }
+
   if(!ga4) return `
   <section id="ga4">
     <div class="sec-head"><h2>Google Analytics 4</h2><span class="src">Source : Coupler.io → Google Sheets</span></div>
-    ${noData("Données GA4 non disponibles pour ce mois. Vérifiez que Coupler.io a synchronisé l'onglet ga4 dans le Sheet.")}
+    ${noData("Données GA4 non disponibles pour ce mois. Vérifiez que Coupler.io a synchronisé les onglets ga4 et ga4_channels.")}
   </section>`;
 
-  // The ga4 tab stores raw Coupler rows directly (not as JSON) — each row is a page entry
-  // ga4 is already parsed as an object from the sheet; it may contain a 'rows' array
-  // or be a single month object with pages array
   const rows = ga4.rows || [];
 
   // Parse rows: [property, landing_page, month, new_users, total_users, sessions, engaged_sessions, engagement_rate, bounce_rate]
@@ -913,6 +992,11 @@ function secGA4(d){
         </table>
       </div>
       <div class="foot">Données Coupler.io · GA4 Landing page performance. Toutes pages confondues (FR/EN/DE). Taux d'engagement = sessions engagées / sessions totales.</div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h3>Sources de trafic <span class="hint">par canal GA4 · sessions + key events</span></h3>
+      ${buildChannels()}
     </div>
   </section>`;
 }
@@ -994,6 +1078,7 @@ function assembleMonth(key) {
     ai: m.ai || null,
     deep: m.deep || null,
     ga4: m.ga4 || null,
+    ga4ch: m.ga4ch || null,
     _shared: shared,
     _ahrefsTrend: ahrefsTrend,
     _activeIdx: trendMonths.length - 1
