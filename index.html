@@ -761,9 +761,42 @@ function secAI(d){
     </div>
 
     <div class="grid cols-2" style="margin-top:14px">
-      <div class="card"><h3>AI Share of Voice <span class="hint">ChatGPT · Gemini · Perplexity</span></h3>
-        ${ai.brandRadar ? '' : noData("L'add-on Ahrefs Brand Radar AI n'est pas activé sur l'abonnement actuel (Standard). Cette section affichera le % de mentions de Shanti Travel vs concurrents dans ChatGPT, Gemini et Perplexity une fois l'add-on souscrit (à partir de 398 $/mois).")}
+      <div class="card" style="grid-column:1/-1"><h3>Présence dans les moteurs IA <span class="hint">Source : Ahrefs Site Explorer · snapshot ${ai.brandRadar ? esc(ai.brandRadar.snapshot_date||'') : '—'}</span></h3>
+        ${ai.brandRadar ? (function(){
+          const br = ai.brandRadar;
+          const dChip = (v) => v == null ? '' : v === 0 ? '<span class="delta flat">—</span>' : v > 0
+            ? '<span class="delta good">▲ +'+v+'</span>'
+            : '<span class="delta bad">▼ '+v+'</span>';
+
+          // Hero KPIs: AI Overviews + ChatGPT
+          const heroes = '<div class="grid kpis" style="margin-bottom:14px">' +
+            kpiCard('AI Overviews · Réponses', fmt(br.ai_overviews.responses), dChip(br.ai_overviews.delta_responses)) +
+            kpiCard('AI Overviews · Pages citées', fmt(br.ai_overviews.pages), dChip(br.ai_overviews.delta_pages)) +
+            kpiCard('ChatGPT · Réponses', fmt(br.chatgpt.responses), dChip(br.chatgpt.delta_responses)) +
+            kpiCard('ChatGPT · Pages citées', fmt(br.chatgpt.pages), dChip(br.chatgpt.delta_pages)) +
+          '</div>';
+
+          // Platform table
+          const maxResp = Math.max(...br.platforms.map(p=>p.responses));
+          const rows = br.platforms.map(function(p){
+            const bar = '<div class="hbar" style="width:120px;display:inline-block;vertical-align:middle;margin-right:8px"><i style="width:'+Math.max(2,p.responses/maxResp*100)+'%"></i></div>';
+            return '<tr><td style="font-weight:600">'+esc(p.name)+'</td>' +
+              '<td class="r num">'+bar+fmt(p.responses)+'</td>' +
+              '<td class="r">'+dChip(p.delta_responses)+'</td>' +
+              '<td class="r num">'+fmt(p.pages)+'</td>' +
+              '<td class="r">'+dChip(p.delta_pages)+'</td></tr>';
+          }).join('');
+
+          const table = '<div class="tbl-scroll"><table><thead><tr>' +
+            '<th>Plateforme</th><th class="r">Réponses</th><th class="r">Δ</th><th class="r">Pages citées</th><th class="r">Δ</th>' +
+            '</tr></thead><tbody>'+rows+'</tbody></table></div>';
+
+          return heroes + table +
+            '<div class="foot" style="margin-top:8px">Données issues de l\'interface Ahrefs Site Explorer (AI Responses). Les variations Δ sont vs le mois précédent selon Ahrefs. Source : saisie manuelle mensuelle.</div>';
+        })() : noData("Collez le JSON Brand Radar dans la sidebar → Visibilité IA pour afficher les données de présence dans les moteurs IA.")}
       </div>
+    </div>
+    <div class="grid cols-2" style="margin-top:14px">
       <div class="card"><h3>Trafic référé par les IA <span class="hint">chatgpt.com, perplexity.ai…</span></h3>
         ${ai.llmReferral ? '' : noData("Le suivi du trafic référé par les IA nécessite le script Ahrefs Web Analytics installé sur shantitravel.com. Une fois en place, cette section affichera les visites issues de ChatGPT, Perplexity et autres assistants.")}
       </div>
