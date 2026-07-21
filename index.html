@@ -914,6 +914,81 @@ function secAI(d){
   </section>`;
 }
 
+
+/* ================================================================
+   VISIBILITE IA 2 - rapport statique ponctuel (Ahrefs AI Responses export)
+   Donnees figees au 01/07/2026, identiques quel que soit le mois selectionne.
+   ================================================================ */
+const AI2_DATA = {"date": "01/07/2026", "source": "Ahrefs AI Responses export", "summary": {"totalTests": 540, "uniqueKeywords": 60, "citationRate": 3.7, "totalCited": 20, "gapKeywords": 45, "citedKeywords": 15, "platformsTested": 6, "marketsTested": 2}, "platforms": [["Copilot", 100, 8, 8.0], ["ChatGPT", 109, 5, 4.6], ["Google AI Mode", 60, 3, 5.0], ["Google AI Overviews", 59, 2, 3.4], ["Gemini", 107, 1, 0.9], ["Perplexity", 105, 1, 1.0]], "markets": [["FR", 199, 11, 5.5], ["US", 341, 9, 2.6]], "competitorDomains": [["google.com", 16], ["explorient.com", 14], ["travellocal.com", 9], ["reddit.com", 8], ["customasiatravel.com", 7], ["travelstride.com", 7], ["kimkim.com", 6], ["audleytravel.com", 6], ["roughguides.com", 6], ["orlatours.com", 5], ["tourradar.com", 5], ["asiatours.com", 5], ["selectiveasia.com", 4], ["srilankatailormade.com", 4], ["insideasiatours.com", 4]], "citedKeywordsList": [["How to organize a tailor-made trip to Sri Lanka", 30, 1, 10, ["Google AI Overviews"]], ["Custom travel itineraries in Asia", 20, 1, 10, ["Google AI Mode"]], ["Best tailor-made travel agency in Sri Lanka", 20, 1, 10, ["Google AI Mode"]], ["Tailor-made trips in Asia", 20, 1, 9, ["ChatGPT"]], ["Which agency specializes in tailor-made travel in Asia", 10, 2, 9, ["ChatGPT", "Perplexity"]], ["Which company offers authentic travel experiences in Asia", 10, 2, 10, ["ChatGPT", "Copilot"]], ["Eco-friendly travel in Vietnam", 10, 1, 10, ["ChatGPT"]], ["Ethical travel experiences in Asia", 0, 1, 10, ["Copilot"]], ["Custom cultural tours in Asia", 0, 1, 10, ["Copilot"]], ["Best local experts for travel in Asia", 0, 1, 10, ["Copilot"]], ["Best local travel agency in Indonesia", 0, 2, 10, ["ChatGPT", "Copilot"]], ["Responsible tourism in Sri Lanka", 0, 2, 9, ["Google AI Mode", "Google AI Overviews"]], ["Private guided tours in Asia", 0, 1, 10, ["Copilot"]], ["Personalized travel experiences in Asia", 0, 2, 10, ["Copilot"]], ["Responsible travel specialists in Asia", 0, 1, 10, ["Gemini"]]], "gapKeywordsList": [["What is the best travel agency for Japan", 50, 9], ["Get last-minute tour discounts", 30, 5], ["Community-based tourism in Asia", 30, 10], ["10-day cultural itinerary for Sri Lanka", 30, 5], ["Authentic responsible travel in Asia", 20, 8], ["Best local travel agency in Cambodia", 20, 10], ["Local sustainable travel experts", 20, 10], ["How to travel responsibly in Asia", 20, 10], ["Best tailor-made travel agency in Vietnam", 20, 10], ["Best local travel agency in Vietnam", 20, 10], ["Best local travel agency in Japan", 20, 8], ["Best local travel agency in Laos", 20, 10], ["Best local experts for travel in Southeast Asia", 20, 10], ["Best local travel agency in Thailand", 20, 9], ["Who organizes cultural tours in India", 10, 10], ["Travel agency vs self-planned trip in Asia", 10, 10], ["Why choose a local travel agency in Asia", 10, 10], ["Best local travel agency in Bhutan", 10, 10], ["Benefits of tailor-made travel", 10, 9], ["Best alternative to Expedia for Asia travel", 10, 10], ["Recommended travel agency for a custom Asia itinerary", 10, 10], ["Compare Expedia vs boutique agency for custom itineraries?", 10, 5], ["Best travel agency reviews for tailor-made tours?", 10, 5], ["Best responsible travel agency in Asia", 10, 10], ["Who are the local travel experts in India", 10, 10], ["Packing checklist for multi-country Southeast Asia trip", 10, 5], ["Sustainable travel agency in India", 10, 10], ["Best local travel agency in Nepal", 10, 9], ["Best local travel agency in Sri Lanka", 10, 8], ["What's included in private guide and driver packages?", 10, 6], ["Best eco-tour operator in Asia", 0, 10], ["Advantages of custom travel itineraries", 0, 10], ["Best alternative to Booking.com for Asia tours", 0, 10], ["Best local travel agency in India", 0, 10], ["Best tailor-made travel agency in India", 0, 9], ["Eco-friendly operators for wildlife trips", 0, 6], ["Best tailor-made travel agency in Japan", 0, 10], ["How to change or cancel an international tour booking?", 0, 6], ["Family-friendly tours for toddlers and teens", 0, 6], ["Local experts for tailor-made holidays", 0, 10], ["Local travel agency vs online booking platform", 0, 10], ["Travel agency or DIY for safaris?", 0, 6], ["Private tour operator vs online booking site", 0, 10], ["Who can create a custom itinerary in Vietnam", 0, 10], ["Why book with a destination specialist", 0, 9]]};
+
+function secAI2(d){
+  const r = AI2_DATA;
+  const s = r.summary;
+
+  const platMax = Math.max.apply(null, r.platforms.map(function(x){return x[2];}));
+  const platRows = r.platforms.map(function(p){
+    const w = Math.max(2, p[2]/platMax*100);
+    return '<tr><td style="font-weight:600">'+esc(p[0])+'</td><td class="r num">'+fmt(p[1])+'</td><td class="r num">'+fmt(p[2])+'</td>'+
+      '<td><div style="display:flex;align-items:center;gap:6px"><div style="width:80px;height:7px;background:var(--line2);border-radius:99px"><div style="height:100%;width:'+w+'%;background:#7A5CB8;border-radius:99px"></div></div><span class="num" style="font-size:11px">'+p[3]+'%</span></div></td></tr>';
+  }).join('');
+
+  const marketRows = r.markets.map(function(m){
+    return '<tr><td style="font-weight:600">'+esc(m[0])+'</td><td class="r num">'+fmt(m[1])+'</td><td class="r num">'+fmt(m[2])+'</td><td class="r num">'+m[3]+'%</td></tr>';
+  }).join('');
+
+  const domMax = r.competitorDomains[0][1];
+  const domainRows = r.competitorDomains.map(function(dm,i){
+    const w = Math.max(2, dm[1]/domMax*100);
+    return '<tr><td>'+(i+1)+'</td><td>'+esc(dm[0])+'</td><td><div style="display:flex;align-items:center;gap:6px"><div style="width:100px;height:7px;background:var(--line2);border-radius:99px"><div style="height:100%;width:'+w+'%;background:#BC4A33;border-radius:99px"></div></div><span class="num" style="font-size:11px">'+fmt(dm[1])+'</span></div></td></tr>';
+  }).join('');
+
+  const citedRows = r.citedKeywordsList.map(function(k){
+    return '<tr style="background:var(--teal-soft)"><td>'+esc(k[0])+' <span style="color:var(--teal);font-weight:700">★</span></td><td class="r num">'+fmt(k[1])+'</td>'+
+      '<td class="r num">'+k[2]+'/'+k[3]+'</td><td style="font-size:11.5px;color:var(--ink2)">'+k[4].map(esc).join(', ')+'</td></tr>';
+  }).join('');
+
+  const gapRows = r.gapKeywordsList.map(function(k){
+    return '<tr><td>'+esc(k[0])+'</td><td class="r num">'+fmt(k[1])+'</td><td class="r num">'+k[2]+'</td></tr>';
+  }).join('');
+
+  return '<section id="ai2">' +
+    '<div class="sec-head"><h2>Visibilite IA 2 - Rapport de citation</h2><span class="src">Source : '+esc(r.source)+' - Snapshot du '+esc(r.date)+'</span></div>' +
+    '<p class="sec-sub">Analyse ponctuelle : 60 mots-cles testes sur 6 plateformes IA (ChatGPT, Copilot, Gemini, Perplexity, Google AI Overviews, Google AI Mode) en France et aux Etats-Unis - 540 tests au total. Ce rapport est fige a la date du snapshot et ne varie pas selon le mois selectionne dans le tableau de bord.</p>' +
+    '<div class="note" style="margin-top:4px;margin-bottom:14px"><span class="tag">Rapport ponctuel</span><div>Ces donnees proviennent d\'un export unique Ahrefs AI Responses et ne sont pas actualisees automatiquement chaque mois. Pour rafraichir, reexporter le meme rapport depuis Ahrefs et transmettre le nouveau CSV.</div></div>' +
+    '<div class="grid kpis">' +
+      kpiCard("Taux de citation global", s.citationRate+"%", '<span class="delta bad">'+fmt(s.totalCited)+' / '+fmt(s.totalTests)+' tests</span>') +
+      kpiCard("Mots-cles a 0% visibilite", fmt(s.gapKeywords), '<span class="delta bad">sur '+fmt(s.uniqueKeywords)+' mots-cles testes</span>') +
+      kpiCard("Mots-cles deja cites", fmt(s.citedKeywords), '<span class="delta good">au moins 1 fois</span>') +
+      kpiCard("Plateformes testees", fmt(s.platformsTested), '<span class="delta flat">'+fmt(s.marketsTested)+' marches (FR + US)</span>') +
+    '</div>' +
+    '<div class="grid cols-2" style="margin-top:14px">' +
+      '<div class="card"><h3>Par plateforme <span class="hint">taux de citation</span></h3>' +
+        '<div class="tbl-scroll"><table><thead><tr><th>Plateforme</th><th class="r">Tests</th><th class="r">Citations</th><th>Taux</th></tr></thead><tbody>'+platRows+'</tbody></table></div>' +
+      '</div>' +
+      '<div class="card"><h3>Par marche <span class="hint">FR vs US</span></h3>' +
+        '<div class="tbl-scroll"><table><thead><tr><th>Marche</th><th class="r">Tests</th><th class="r">Citations</th><th class="r">Taux</th></tr></thead><tbody>'+marketRows+'</tbody></table></div>' +
+        '<div class="foot">Le marche FR obtient un taux de citation pres de 2x superieur au marche US.</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="grid cols-2" style="margin-top:14px">' +
+      '<div class="card" style="grid-column:1/-1"><h3>Domaines concurrents les plus cites <span class="hint">top 15 - toutes plateformes confondues</span></h3>' +
+        '<div class="tbl-scroll"><table><thead><tr><th>#</th><th>Domaine</th><th>Citations</th></tr></thead><tbody>'+domainRows+'</tbody></table></div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="grid cols-2" style="margin-top:14px">' +
+      '<div class="card" style="grid-column:1/-1"><h3>Mots-cles deja cites <span class="hint">'+r.citedKeywordsList.length+' mots-cles - ★ = citation confirmee</span></h3>' +
+        '<div class="tbl-scroll"><table><thead><tr><th>Mot-cle / prompt</th><th class="r">Volume</th><th class="r">Citations</th><th>Plateformes</th></tr></thead><tbody>'+citedRows+'</tbody></table></div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="grid cols-2" style="margin-top:14px">' +
+      '<div class="card" style="grid-column:1/-1"><h3>Mots-cles a combler <span class="hint">'+r.gapKeywordsList.length+' mots-cles - 0% de citation - tries par volume</span></h3>' +
+        '<div class="tbl-scroll" style="max-height:600px"><table><thead><tr><th>Mot-cle / prompt</th><th class="r">Volume</th><th class="r">Tests</th></tr></thead><tbody>'+gapRows+'</tbody></table></div>' +
+        '<div class="foot">Ces mots-cles/prompts n\'ont genere aucune citation de shantitravel.com sur aucune des 6 plateformes testees. Priorite de contenu, triee par volume de recherche decroissant.</div>' +
+      '</div>' +
+    '</div>' +
+  '</section>';
+}
+
 function secGA4(d){
   const ga4 = d.ga4;
   const ga4ch = d.ga4ch;
@@ -1077,6 +1152,7 @@ const PAGES = [
   {id:"kw",       label:"Mots-clés Ahrefs",   fn: (d,prev) => secKw(d,prev)},
   {id:"deep",     label:"Analyse Approfondie", fn: (d,prev) => secDeep(d,prev)},
   {id:"ai",       label:"Visibilité IA",       fn: (d,prev) => secAI(d,prev)},
+  {id:"ai2",      label:"Visibilité IA 2",     fn: (d,prev) => secAI2(d,prev)},
   {id:"ga4",      label:"Google Analytics 4", fn: (d,prev) => secGA4(d,prev)}
 ];
 
