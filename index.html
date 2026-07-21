@@ -391,11 +391,17 @@ function sparkline(points, activeIdx){
 }
 function stackedBuckets(b, prev){
   const mk=(o,lab)=>{
-    const tot=o.top3+o.mid+o.low;
+    if(!o) return '';
+    // Support both {top3,mid,low} (legacy) and {top3,top4_10,top11_20,top21_50,top51} (new)
+    const t3  = o.top3 || 0;
+    const mid = o.mid  != null ? o.mid  : ((o.top4_10||0));
+    const low = o.low  != null ? o.low  : ((o.top11_20||0)+(o.top21_50||0)+(o.top51||0));
+    const tot = t3 + mid + low;
+    if(!tot) return '';
     const seg=(v,c)=>'<i style="display:inline-block;height:100%;width:'+(v/tot*100)+'%;background:'+c+'"></i>';
     return '<div style="margin-bottom:13px"><div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-bottom:4px"><span>'+lab+'</span><span class="num">'+fmt(tot)+' mots-clés</span></div>' +
-      '<div style="height:18px;border-radius:6px;overflow:hidden;display:flex">'+seg(o.top3,"#14635C")+seg(o.mid,"#7FA8A1")+seg(o.low,"#D8D2C2")+'</div>' +
-      '<div class="legend"><div><i style="background:#14635C"></i>Top 3 · <b class="num">'+fmt(o.top3)+'</b></div><div><i style="background:#7FA8A1"></i>4–10 · <b class="num">'+fmt(o.mid)+'</b></div><div><i style="background:#D8D2C2"></i>11+ · <b class="num">'+fmt(o.low)+'</b></div></div></div>';
+      '<div style="height:18px;border-radius:6px;overflow:hidden;display:flex">'+seg(t3,"#14635C")+seg(mid,"#7FA8A1")+seg(low,"#D8D2C2")+'</div>' +
+      '<div class="legend"><div><i style="background:#14635C"></i>Top 3 · <b class="num">'+fmt(t3)+'</b></div><div><i style="background:#7FA8A1"></i>4–10 · <b class="num">'+fmt(mid)+'</b></div><div><i style="background:#D8D2C2"></i>11–50+ · <b class="num">'+fmt(low)+'</b></div></div></div>';
   };
   return (prev?mk(prev,"Mois précédent"):"") + mk(b,"Mois sélectionné");
 }
@@ -580,11 +586,17 @@ function secAhrefs(d){
     <div class="grid cols-2" style="margin-top:14px">
       <div class="card"><h3>Mouvements — gains <span class="hint">positions gagnées (FR)</span></h3>
         ${a.movers.up.length ? '<table><thead><tr><th>Mot-clé</th><th class="r">Volume</th><th class="r">Avant → Après</th><th class="r">Δ</th></tr></thead><tbody>' +
-          a.movers.up.map(m=>'<tr><td>'+esc(m[0])+'</td><td class="r num">'+fmt(m[1])+'</td><td class="r num">'+m[2]+' → '+m[3]+'</td><td class="r"><span class="mv up">▲ '+(m[2]-m[3])+'</span></td></tr>').join("") + '</tbody></table>' : noData()}
+          a.movers.up.map(function(m){
+            const kw=m.kw||m[0]||'—', vol=m.vol||m[1]||0, prev=m.prev||m[2]||0, cur=m.cur||m[3]||0;
+            return '<tr><td>'+esc(kw)+'</td><td class="r num">'+fmt(vol)+'</td><td class="r num">'+prev+' → '+cur+'</td><td class="r"><span class="mv up">▲ '+(prev-cur)+'</span></td></tr>';
+          }).join("") + '</tbody></table>' : noData()}
       </div>
       <div class="card"><h3>Mouvements — pertes <span class="hint">positions perdues (FR)</span></h3>
         ${a.movers.down.length ? '<table><thead><tr><th>Mot-clé</th><th class="r">Volume</th><th class="r">Avant → Après</th><th class="r">Δ</th></tr></thead><tbody>' +
-          a.movers.down.map(m=>'<tr><td>'+esc(m[0])+'</td><td class="r num">'+fmt(m[1])+'</td><td class="r num">'+m[2]+' → '+m[3]+'</td><td class="r"><span class="mv down">▼ '+(m[3]-m[2])+'</span></td></tr>').join("") + '</tbody></table>' : noData()}
+          a.movers.down.map(function(m){
+            const kw=m.kw||m[0]||'—', vol=m.vol||m[1]||0, prev=m.prev||m[2]||0, cur=m.cur||m[3]||0;
+            return '<tr><td>'+esc(kw)+'</td><td class="r num">'+fmt(vol)+'</td><td class="r num">'+prev+' → '+cur+'</td><td class="r"><span class="mv down">▼ '+(cur-prev)+'</span></td></tr>';
+          }).join("") + '</tbody></table>' : noData()}
       </div>
     </div>
   </section>`;
@@ -850,6 +862,55 @@ function secAI(d){
         ${ai.llmReferral ? '' : noData("Le suivi du trafic référé par les IA nécessite le script Ahrefs Web Analytics installé sur shantitravel.com. Une fois en place, cette section affichera les visites issues de ChatGPT, Perplexity et autres assistants.")}
       </div>
     </div>
+
+    ${(function(){
+      const bing = ai.bing;
+      if(!bing || !bing.pageStats || !bing.pageStats.length) return `
+      <div class="grid cols-2" style="margin-top:14px">
+        <div class="card" style="grid-column:1/-1"><h3>Citations Bing <span class="hint">Microsoft Copilot / Bing AI</span></h3>
+          ${noData("Collez le JSON Bing (Page Stats + Search Queries) dans la sidebar → Visibilité IA pour afficher les citations Copilot/Bing.")}
+        </div>
+      </div>`;
+
+      const pages = bing.pageStats || [];
+      const queries = bing.searchQueries || [];
+      const maxPageCit = pages[0] ? pages[0][1] : 1;
+      const maxQCit = queries[0] ? queries[0][3] : 1;
+
+      const shortUrl = (u) => u.replace('https://www.shantitravel.com','');
+
+      const pageRows = pages.map(function(p){
+        const w = Math.max(2, p[1]/maxPageCit*100);
+        return '<tr><td class="path" title="'+esc(p[0])+'">'+esc(shortUrl(p[0]))+'</td>'+
+          '<td><div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:8px;background:var(--line2);border-radius:99px"><div style="height:100%;width:'+w+'%;background:#1e6fa8;border-radius:99px"></div></div><span class="num" style="min-width:44px;text-align:right;font-size:11px">'+fmt(p[1])+'</span></div></td></tr>';
+      }).join('');
+
+      const queryRows = queries.map(function(q){
+        const w = Math.max(2, q[3]/maxQCit*100);
+        return '<tr><td>'+esc(q[0])+'</td><td><span class="chip" style="color:#1e6fa8;background:#deeaf7">'+esc(q[1])+'</span></td><td style="font-size:12px;color:var(--ink2)">'+esc(q[2])+'</td>'+
+          '<td><div style="display:flex;align-items:center;gap:6px"><div style="width:70px;height:7px;background:var(--line2);border-radius:99px"><div style="height:100%;width:'+w+'%;background:#1e6fa8;border-radius:99px"></div></div><span class="num" style="font-size:11px">'+fmt(q[3])+'</span></div></td>'+
+          '<td class="r num">'+esc(q[4])+'</td></tr>';
+      }).join('');
+
+      return `
+      <div class="grid cols-2" style="margin-top:14px">
+        <div class="card" style="grid-column:1/-1"><h3>Citations Bing <span class="hint">Microsoft Copilot / Bing AI · ${bing.generated?esc(bing.generated):''}</span></h3>
+          <div class="grid kpis" style="margin-bottom:14px">
+            ${kpiCard("Pages citées", fmt(pages.length), '<span class="delta flat">sur Bing/Copilot</span>')}
+            ${kpiCard("Citations totales (pages)", fmt(pages.reduce((s,p)=>s+p[1],0)), '<span class="delta flat">cumul toutes pages</span>')}
+            ${kpiCard("Requêtes suivies", fmt(queries.length), '<span class="delta flat">grounding queries</span>')}
+            ${kpiCard("Citations totales (requêtes)", fmt(queries.reduce((s,q)=>s+q[3],0)), '<span class="delta flat">cumul toutes requêtes</span>')}
+          </div>
+        </div>
+        <div class="card" style="grid-column:1/-1"><h3>Pages les plus citées par Bing/Copilot <span class="hint">${pages.length} pages</span></h3>
+          <div class="tbl-scroll" style="max-height:480px"><table><thead><tr><th>Page</th><th>Citations</th></tr></thead><tbody>${pageRows}</tbody></table></div>
+        </div>
+        <div class="card" style="grid-column:1/-1"><h3>Requêtes générant des citations <span class="hint">${queries.length} requêtes · triées par citations</span></h3>
+          <div class="tbl-scroll" style="max-height:480px"><table><thead><tr><th>Requête</th><th>Intent</th><th>Topic</th><th>Citations</th><th class="r">Part</th></tr></thead><tbody>${queryRows}</tbody></table></div>
+          <div class="foot">Source : Bing Webmaster Tools — AI Page Stats &amp; AI Search Queries reports. Part = part de citation sur cette requête (Citation Share).</div>
+        </div>
+      </div>`;
+    })()}
   </section>`;
 }
 
