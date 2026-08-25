@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<style>
+  body{font-family:'Google Sans',Roboto,Arial,sans-serif;font-size:13px;color:#202124;margin:0;padding:14px}
+  h2{font-size:14px;margin:0 0 4px}
+  .sub{color:#5f6368;font-size:11.5px;margin-bottom:14px}
+  .group{border:1px solid #e0e0e0;border-radius:8px;padding:12px;margin-bottom:12px}
+  .group h3{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#1a73e8;margin:0 0 8px}
+  label{display:block;font-size:11px;color:#5f6368;margin:8px 0 3px}
+  input,textarea{width:100%;box-sizing:border-box;border:1px solid #dadce0;border-radius:6px;padding:7px 8px;font-size:12px;font-family:inherit}
+  textarea{resize:vertical;min-height:72px}
+  button{background:#1a73e8;color:#fff;border:0;border-radius:6px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;margin-top:8px;width:100%}
+  button:hover{background:#1765cc}
+  button.sec{background:#fff;color:#1a73e8;border:1px solid #dadce0}
+  button.sec:hover{background:#f1f6fe}
+  .msg{font-size:11.5px;padding:7px 9px;border-radius:6px;margin-top:8px;display:none}
+  .msg.ok{background:#e6f4ea;color:#137333;display:block}
+  .msg.err{background:#fce8e6;color:#c5221f;display:block}
+  .row2{display:flex;gap:8px}
+  .row2>div{flex:1}
+  .hint{font-size:10.5px;color:#80868b;margin-top:3px;margin-bottom:4px}
+  .badge{display:inline-block;background:#e8f0fe;color:#1a73e8;border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px;letter-spacing:.03em;margin-left:5px}
+</style>
+</head>
+<body>
+<h2>📊 Mise à jour mensuelle</h2>
+<div class="sub">Renseignez le mois, collez chaque JSON fourni par Claude, enregistrez.</div>
+
+<div class="row2">
+  <div><label>Clé (AAAA-MM)</label><input id="monthKey" placeholder="2026-06"/></div>
+  <div><label>Libellé</label><input id="monthLabel" placeholder="Juin 2026"/></div>
+</div>
+
+<!-- Vercel -->
+<div class="group" style="margin-top:14px">
+  <h3>1 · Vercel <span class="badge">CSV → JSON via Claude</span></h3>
+  <div class="hint">Collez vos CSV Vercel dans Claude → récupérez le JSON → collez ici.</div>
+  <textarea id="vercelJson" placeholder='{"kpi":{...},"devices":[...],...}'></textarea>
+  <button class="sec" onclick="save('vercel','vercelJson')">Enregistrer Vercel</button>
+</div>
+
+<!-- GSC -->
+<div class="group">
+  <h3>2 · Search Console <span class="badge">JSON via Claude</span></h3>
+  <div class="hint">Demandez à Claude « pull GSC [mois] » → collez le JSON ici.</div>
+  <textarea id="gscJson" placeholder='{"kpi":{...},"devices":[...],"queries":[...],...}'></textarea>
+  <button class="sec" onclick="save('gsc','gscJson')">Enregistrer GSC</button>
+</div>
+
+<!-- Ahrefs -->
+<div class="group">
+  <h3>3 · Ahrefs <span class="badge">JSON via Claude</span></h3>
+  <div class="hint">Demandez à Claude « pull Ahrefs [mois] » → collez le JSON ici.</div>
+  <textarea id="ahrefsJson" placeholder='{"kpi":{...},"buckets":{...},"movers":{...}}'></textarea>
+  <button class="sec" onclick="save('ahrefs','ahrefsJson')">Enregistrer Ahrefs</button>
+</div>
+
+<!-- AI Visibility -->
+<div class="group">
+  <h3>4 · Visibilité IA <span class="badge">JSON via Claude</span></h3>
+  <div class="hint">JSON complet : SERP features + Brand Radar + Citations Bing. Donnez à Claude les 2 exports Bing Webmaster Tools (AI Page Stats + AI Search Queries) chaque mois, il fusionne tout dans ce JSON.</div>
+  <textarea id="aiJson" placeholder='{"summary":{...},"keywords":[...],"brandRadar":{...},"bing":{...}}'></textarea>
+  <button class="sec" onclick="save('ai','aiJson')">Enregistrer Visibilité IA</button>
+</div>
+
+<!-- Keywords -->
+<div class="group">
+  <h3>5 · Mots-clés <span style="font-weight:400;text-transform:none;color:#80868b">(optionnel)</span></h3>
+  <textarea id="kwJson" placeholder='{"byTraffic":[...],"byVolume":[...]}'></textarea>
+  <button class="sec" onclick="save('keywords','kwJson')">Enregistrer mots-clés</button>
+</div>
+
+
+<!-- Deep Analysis -->
+<div class="group" style="border-color:#1a73e8">
+  <h3 style="color:#1a73e8">🔍 Analyse Approfondie <span class="badge">JSON via Claude</span></h3>
+  <div class="hint">Demandez à Claude « run deep analysis [mois] » → collez le JSON complet ici.</div>
+  <textarea id="deepJson" style="min-height:100px" placeholder='{"month":"2026-06","summary":{...},"leaks":[...],...}'></textarea>
+  <button class="sec" onclick="save('deep_analysis','deepJson')">Enregistrer Analyse Approfondie</button>
+</div>
+
+<!-- Status Update -->
+<div class="group" style="border-color:#f59e0b">
+  <h3 style="color:#b45309">⚡ Mise à jour statut rapide</h3>
+  <div class="hint">Mettre à jour open → in_progress → fixed sans re-coller tout le JSON.</div>
+  <label>Section</label>
+  <select id="statusSection" style="width:100%;border:1px solid #dadce0;border-radius:6px;padding:7px 8px;font-size:12px">
+    <option value="cannibalization">Cannibalisation</option>
+    <option value="opportunities">Opportunités</option>
+    <option value="leaks">Fuites</option>
+  </select>
+  <label>Requête / Mot-clé (exact)</label>
+  <input id="statusQuery" placeholder="ex: sri lanka" />
+  <label>Nouveau statut</label>
+  <select id="statusValue" style="width:100%;border:1px solid #dadce0;border-radius:6px;padding:7px 8px;font-size:12px">
+    <option value="open">open</option>
+    <option value="in_progress">in_progress</option>
+    <option value="fixed">fixed</option>
+    <option value="captured">captured</option>
+  </select>
+  <button onclick="updateStatus()" style="background:#f59e0b">Mettre à jour le statut</button>
+</div>
+<!-- Analysis -->
+<div class="group">
+  <h3>6 · Analyse <span style="font-weight:400;text-transform:none;color:#80868b">(optionnel)</span></h3>
+  <div class="hint">Texte libre — insights, recommandations du mois.</div>
+  <textarea id="analysisText" placeholder="Le trafic organique recule mais le CTR progresse…"></textarea>
+  <button class="sec" onclick="saveAnalysis()">Enregistrer l'analyse</button>
+</div>
+
+<!-- Shared -->
+<div class="group">
+  <h3>⚙ Concurrents &amp; Backlinks <span style="font-weight:400;text-transform:none;color:#80868b">(1×/trimestre)</span></h3>
+  <div class="hint">JSON fourni par Claude. Écrase les données précédentes.</div>
+  <textarea id="sharedJson" placeholder='{"competitors":[...],"refdomains":[...]}'></textarea>
+  <button class="sec" onclick="saveShared()">Enregistrer données partagées</button>
+</div>
+
+<div id="msg" class="msg"></div>
+
+<script>
+  function mk(){ return document.getElementById('monthKey').value.trim(); }
+  function ml(){ return document.getElementById('monthLabel').value.trim(); }
+  function show(res){
+    var m=document.getElementById('msg');
+    m.className='msg '+(res.ok?'ok':'err');
+    m.textContent=res.msg;
+    m.scrollIntoView({behavior:'smooth'});
+  }
+  function fail(e){ show({ok:false,msg:'Erreur : '+e.message}); }
+
+  function save(tab, fieldId){
+    var val = document.getElementById(fieldId).value.trim();
+    if(!val){ show({ok:false,msg:'Champ vide.'}); return; }
+    var fn = tab==='vercel'   ? google.script.run.withSuccessHandler(show).withFailureHandler(fail).saveVercel
+           : tab==='gsc'      ? google.script.run.withSuccessHandler(show).withFailureHandler(fail).saveGSC
+           : tab==='ahrefs'   ? google.script.run.withSuccessHandler(show).withFailureHandler(fail).saveAhrefs
+           : tab==='ai'       ? google.script.run.withSuccessHandler(show).withFailureHandler(fail).saveAI
+           : tab==='deep_analysis' ? google.script.run.withSuccessHandler(show).withFailureHandler(fail).saveDeepAnalysis
+           :                    google.script.run.withSuccessHandler(show).withFailureHandler(fail).saveKeywords;
+    fn(mk(), ml(), val);
+  }
+  function saveAnalysis(){
+    var val=document.getElementById('analysisText').value.trim();
+    if(!val){ show({ok:false,msg:'Champ vide.'}); return; }
+    google.script.run.withSuccessHandler(show).withFailureHandler(fail).saveAnalysis(mk(),ml(),val);
+  }
+  function saveDeepAnalysis(){ google.script.run.withSuccessHandler(show).withFailureHandler(fail).saveDeepAnalysis(mk(),ml(),document.getElementById('deepJson').value.trim()); }
+  function updateStatus(){
+    var section = document.getElementById('statusSection').value;
+    var query = document.getElementById('statusQuery').value.trim();
+    var status = document.getElementById('statusValue').value;
+    if(!query){ show({ok:false,msg:'Entrez la requête exacte.'}); return; }
+    google.script.run.withSuccessHandler(show).withFailureHandler(fail).updateDeepAnalysisStatus(mk(), section, query, status);
+  }
+  function saveShared(){
+    var val=document.getElementById('sharedJson').value.trim();
+    if(!val){ show({ok:false,msg:'Champ vide.'}); return; }
+    google.script.run.withSuccessHandler(show).withFailureHandler(fail).saveShared(val);
+  }
+</script>
+</body>
+</html>

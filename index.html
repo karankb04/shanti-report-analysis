@@ -316,6 +316,39 @@ let MONTHS = [];   // [{key:'2026-05', label:'Mai 2026'}, ...]
 let STORE  = {};   // {vercel:{month:data}, gsc:{...}, ahrefs:{...}, kw:{...}, ai:{...}, shared:{...}}
 let CACHE  = {};   // key → assembled month object
 
+/* ---- Fichiers de données versionnés dans le repo : data/<onglet>/<AAAA-MM>.json ----
+   Servis par Vercel depuis la même origine que ce fichier — pas de CORS, pas d'auth.
+   Permet une mise à jour par commit Git, sans passer par le Sheet ni le Sidebar.
+   data/index.json déclare les fichiers disponibles ({"ai":["2026-07"], ...}) — on
+   ne va donc chercher que ce qui existe réellement (pas de 404 dans la console).
+   Fusionné PAR-DESSUS les données du Sheet : les clés du fichier gagnent, les
+   autres (collées via le Sidebar) sont conservées. */
+async function fetchRepoManifest(){
+  try {
+    const r = await fetch('data/index.json', { cache:'no-store' });
+    if(!r.ok) return {};
+    return await r.json();
+  } catch(e){ return {}; }
+}
+
+async function fetchRepoTab(tab, monthKeys){
+  const out = {};
+  await Promise.all((monthKeys||[]).map(async function(key){
+    try {
+      const r = await fetch('data/' + tab + '/' + key + '.json', { cache:'no-store' });
+      if(!r.ok) return;
+      out[key] = await r.json();
+    } catch(e){ console.warn('data/'+tab+'/'+key+'.json illisible', e); }
+  }));
+  return out;
+}
+
+function mergeRepoInto(store, repo){
+  Object.keys(repo).forEach(function(k){
+    store[k] = Object.assign({}, store[k] || {}, repo[k]);
+  });
+}
+
 async function loadAllData(){
   setStatus('Lecture des onglets de données…');
   const results = await Promise.all([
@@ -330,6 +363,19 @@ async function loadAllData(){
     fetchShared()
   ]);
   STORE = { vercel:results[0], gsc:results[1], ahrefs:results[2], kw:results[3], ai:results[4], deep:results[5], ga4:results[6], ga4ch:results[7], shared:results[8] };
+
+  const manifest = await fetchRepoManifest();
+  const repoTabs = Object.keys(manifest);
+  if(repoTabs.length){
+    setStatus('Lecture des fichiers de données du dépôt…');
+    const storeKeys = { vercel:'vercel', gsc:'gsc', ahrefs:'ahrefs', keywords:'kw', ai:'ai', deep_analysis:'deep' };
+    const repoResults = await Promise.all(repoTabs.map(function(t){ return fetchRepoTab(t, manifest[t]); }));
+    repoTabs.forEach(function(t, i){
+      const sk = storeKeys[t] || t;
+      if(!STORE[sk]) STORE[sk] = {};
+      mergeRepoInto(STORE[sk], repoResults[i]);
+    });
+  }
 }
 
 function loadMonth(key){
