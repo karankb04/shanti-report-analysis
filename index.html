@@ -116,6 +116,25 @@ td.path{font-size:12.5px;color:var(--ink2);max-width:330px;overflow:hidden;text-
 .nodata b{font-size:13.5px;color:var(--ink2);font-weight:600}
 .nodata span{font-size:12px;max-width:380px}
 .foot{font-size:11px;color:var(--muted);margin-top:10px}
+
+/* ---------- source sub-tabs (Visibilité IA) ---------- */
+.src-tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin:2px 0 16px}
+.src-tabs input{position:absolute;opacity:0;width:0;height:0;pointer-events:none}
+.src-tabs label{cursor:pointer;display:flex;align-items:center;gap:7px;padding:9px 15px;font-family:'Archivo';font-size:12.5px;font-weight:600;color:var(--muted);border-radius:8px 8px 0 0;transition:color .15s,background .15s}
+.src-tabs label:hover{color:var(--ink);background:rgba(32,48,58,.05)}
+.src-tabs label i{width:8px;height:8px;border-radius:50%;flex:none;background:currentColor;opacity:.55}
+#src-ahrefs:checked ~ .src-tabs label[for="src-ahrefs"],
+#src-bing:checked ~ .src-tabs label[for="src-bing"],
+#src-gsc:checked ~ .src-tabs label[for="src-gsc"]{background:var(--ink);color:#fff}
+#src-ahrefs:checked ~ .src-tabs label[for="src-ahrefs"] i,
+#src-bing:checked ~ .src-tabs label[for="src-bing"] i,
+#src-gsc:checked ~ .src-tabs label[for="src-gsc"] i{opacity:1}
+.src-panel{display:none}
+#src-ahrefs:checked ~ .src-panels #panel-ahrefs,
+#src-bing:checked ~ .src-panels #panel-bing,
+#src-gsc:checked ~ .src-panels #panel-gsc{display:block}
+.src-explain{font-size:12.5px;line-height:1.55;color:var(--ink2);margin-bottom:14px;padding:10px 13px;border-radius:8px;border-left:3px solid var(--src-c,var(--teal));background:var(--src-bg,var(--teal-soft))}
+.src-explain b{color:var(--ink)}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--ink2);margin-top:10px}
 .legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 svg text{font-family:'Archivo',sans-serif}
@@ -388,6 +407,33 @@ function sparkline(points, activeIdx){
     '<text x="'+x(i)+'" y="'+(h-1)+'" text-anchor="middle" font-size="10" fill="#75818A">'+d.m+'</text>' +
     '<text x="'+x(i)+'" y="'+(y(d.v)-9)+'" text-anchor="middle" font-size="10.5" font-weight="600" fill="#20303A" class="num">'+fmt(d.v)+'</text>').join("");
   return '<svg viewBox="0 0 '+w+' '+h+'" width="100%" height="'+h+'"><path d="'+path+'" fill="none" stroke="#14635C" stroke-width="2.2" stroke-linecap="round"/>'+dots+'</svg>';
+}
+/* Daily area chart — no per-point labels, used for GSC AI-features daily trend (~30 pts) */
+function areaTrend(points, color){
+  color = color || '#14635C';
+  const w=680,h=90,p=6;
+  if(!points.length) return '';
+  const vs=points.map(d=>d.v), min=Math.min(...vs,0), max=Math.max(...vs), span=(max-min)||1;
+  const x=i=>p+i*(w-2*p)/Math.max(1,points.length-1), y=v=>h-p-(v-min)/span*(h-2*p);
+  const line=points.map((d,i)=>(i?"L":"M")+x(i)+","+y(d.v)).join(" ");
+  const area=line+' L'+x(points.length-1)+','+(h-p)+' L'+x(0)+','+(h-p)+' Z';
+  return '<svg viewBox="0 0 '+w+' '+h+'" width="100%" height="'+h+'" preserveAspectRatio="none">'+
+    '<path d="'+area+'" fill="'+color+'" fill-opacity="0.12" stroke="none"/>'+
+    '<path d="'+line+'" fill="none" stroke="'+color+'" stroke-width="2" vector-effect="non-scaling-stroke"/>'+
+    '</svg>';
+}
+/* Scans STORE.ai across up to n months (ending at curKey) for a monthly sparkline trend */
+function monthlyTrendSeries(curKey, getTotal, n){
+  n = n || 6;
+  if(!MONTHS.length || !STORE.ai) return [];
+  const idx = MONTHS.findIndex(mo => mo.key === curKey);
+  if(idx < 0) return [];
+  const from = Math.max(0, idx-(n-1));
+  return MONTHS.slice(from, idx+1).map(function(mo){
+    const a = STORE.ai[mo.key];
+    const v = a ? getTotal(a) : null;
+    return (v==null) ? null : { m: mo.label.split(' ')[0], v: v };
+  }).filter(Boolean);
 }
 function stackedBuckets(b, prev){
   const mk=(o,lab)=>{
@@ -763,230 +809,199 @@ function secDeep(d){
   </section>`;
 }
 
-function secAI(d){
+function secAI(d, prev){
   const ai = d.ai;
   if(!ai) return `
   <section id="ai">
-    <div class="sec-head"><h2>Visibilité IA &amp; SERP</h2><span class="src">Source : Ahrefs SERP Overview</span></div>
-    <p class="sec-sub">Présence de Shanti Travel dans les fonctionnalités de recherche qui alimentent les réponses IA de Google.</p>
+    <div class="sec-head"><h2>Visibilité IA</h2><span class="src">Ahrefs · Bing Webmaster Tools · Google Search Console</span></div>
+    <p class="sec-sub">Présence de Shanti Travel dans les réponses génératives (ChatGPT, Copilot, Gemini, AI Overviews...) — trois sources indépendantes, chacune mesurant une chose différente.</p>
     ${noData("Données de visibilité IA non disponibles pour ce mois. Demandez à Claude « pull AI visibility » puis collez le JSON dans l'onglet ai.")}
   </section>`;
 
-  const s = ai.summary || {};
-  const featTag = (kind) => {
-    const map = {
-      snippet:    ['Featured Snippet','#14635C','#E3EEEC'],
-      question:   ['People Also Ask','#B98A24','#F6EEDC'],
-      knowledge_card:['Knowledge Card','#7A5CB8','#EEE8F8'],
-      image_th:   ['Pack images','#46859E','#E4EFF3'],
-      video_th:   ['Vidéo','#BC4A33','#F8E9E5'],
-      organic:    ['Organique','#75818A','#EFEBE2'],
-      absent:     ['Absent','#B0492F','#F8E9E5']
-    };
-    const m = map[kind] || map.organic;
-    return '<span class="chip" style="color:'+m[1]+';background:'+m[2]+'">'+m[0]+'</span>';
-  };
+  const dChip = (v) => v == null ? '' : v === 0 ? '<span class="delta flat">—</span>' : v > 0
+    ? '<span class="delta good">▲ +'+v+'</span>'
+    : '<span class="delta bad">▼ '+v+'</span>';
 
-  const kwRows = (ai.keywords||[]).map(function(k){
-    const present = k[5];
-    return '<tr'+(present?' style="background:var(--teal-soft)"':'')+'>'
-      + '<td>'+esc(k[0])+(present?' <span style="color:var(--teal);font-weight:700">★</span>':'')+'</td>'
-      + '<td class="r num">'+fmt(k[1])+'</td>'
-      + '<td class="r num">'+(k[2]==null?'—':k[2])+'</td>'
-      + '<td>'+featTag(k[3])+'</td>'
-      + '<td style="font-size:12px;color:var(--ink2)">'+esc(k[4])+'</td>'
-      + '</tr>';
-  }).join('');
+  /* ---------- Ahrefs panel : AI Responses / Brand Radar-style snapshot ---------- */
+  const ahrefsPanel = (function(){
+    const br = ai.brandRadar;
+    if(!br) return noData("Collez le JSON Brand Radar dans la sidebar → Visibilité IA pour afficher les données de présence dans les moteurs IA.");
+
+    const heroes = '<div class="grid kpis" style="margin-bottom:14px">' +
+      kpiCard('AI Overviews · Réponses', fmt(br.ai_overviews.responses), dChip(br.ai_overviews.delta_responses)) +
+      kpiCard('AI Overviews · Pages citées', fmt(br.ai_overviews.pages), dChip(br.ai_overviews.delta_pages)) +
+      kpiCard('ChatGPT · Réponses', fmt(br.chatgpt.responses), dChip(br.chatgpt.delta_responses)) +
+      kpiCard('ChatGPT · Pages citées', fmt(br.chatgpt.pages), dChip(br.chatgpt.delta_pages)) +
+    '</div>';
+
+    const maxResp = Math.max(...br.platforms.map(p=>p.responses));
+    const rows = br.platforms.map(function(p){
+      const bar = '<div class="hbar" style="width:120px;display:inline-block;vertical-align:middle;margin-right:8px"><i style="width:'+Math.max(2,p.responses/maxResp*100)+'%"></i></div>';
+      return '<tr><td style="font-weight:600">'+esc(p.name)+'</td>' +
+        '<td class="r num">'+bar+fmt(p.responses)+'</td>' +
+        '<td class="r">'+dChip(p.delta_responses)+'</td>' +
+        '<td class="r num">'+fmt(p.pages)+'</td>' +
+        '<td class="r">'+dChip(p.delta_pages)+'</td></tr>';
+    }).join('');
+
+    const table = '<div class="tbl-scroll"><table><thead><tr>' +
+      '<th>Plateforme</th><th class="r">Réponses</th><th class="r">Δ</th><th class="r">Pages citées</th><th class="r">Δ</th>' +
+      '</tr></thead><tbody>'+rows+'</tbody></table></div>';
+
+    return '<div class="card"><h3>Présence dans les moteurs IA <span class="hint">snapshot '+esc(br.snapshot_date||'')+'</span></h3>' +
+      heroes + table +
+      '<div class="foot" style="margin-top:8px">Données issues de l\'interface Ahrefs Site Explorer (AI Responses). Les variations Δ sont vs le mois précédent selon Ahrefs. Saisie manuelle mensuelle.</div>' +
+    '</div>';
+  })();
+
+  /* ---------- Bing panel : citations Bing/Copilot ---------- */
+  const bingPanel = (function(){
+    const bing = ai.bing;
+    if(!bing || !bing.pageStats || !bing.pageStats.length) return noData("Collez le JSON Bing (Page Stats + Search Queries) dans la sidebar → Visibilité IA pour afficher les citations Copilot/Bing.");
+
+    const pages = bing.pageStats || [];
+    const queries = bing.searchQueries || [];
+    const maxPageCit = pages[0] ? pages[0][1] : 1;
+    const maxQCit = queries[0] ? queries[0][3] : 1;
+    const shortUrl = (u) => u.replace('https://www.shantitravel.com','');
+    const totalPageCit = pages.reduce((s,p)=>s+p[1],0);
+
+    const pageRows = pages.map(function(p){
+      const w = Math.max(2, p[1]/maxPageCit*100);
+      return '<tr><td class="path" title="'+esc(p[0])+'">'+esc(shortUrl(p[0]))+'</td>'+
+        '<td><div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:8px;background:var(--line2);border-radius:99px"><div style="height:100%;width:'+w+'%;background:#1e6fa8;border-radius:99px"></div></div><span class="num" style="min-width:44px;text-align:right;font-size:11px">'+fmt(p[1])+'</span></div></td></tr>';
+    }).join('');
+
+    const queryRows = queries.map(function(q){
+      const w = Math.max(2, q[3]/maxQCit*100);
+      return '<tr><td>'+esc(q[0])+'</td><td><span class="chip" style="color:#1e6fa8;background:#deeaf7">'+esc(q[1])+'</span></td><td style="font-size:12px;color:var(--ink2)">'+esc(q[2])+'</td>'+
+        '<td><div style="display:flex;align-items:center;gap:6px"><div style="width:70px;height:7px;background:var(--line2);border-radius:99px"><div style="height:100%;width:'+w+'%;background:#1e6fa8;border-radius:99px"></div></div><span class="num" style="font-size:11px">'+fmt(q[3])+'</span></div></td>'+
+        '<td class="r num">'+esc(q[4])+'</td></tr>';
+    }).join('');
+
+    const series = monthlyTrendSeries(current, function(a){
+      return a.bing && a.bing.pageStats ? a.bing.pageStats.reduce((s,p)=>s+p[1],0) : null;
+    });
+    const trendBlock = series.length>1
+      ? '<div class="card" style="margin-bottom:14px"><h3>Évolution des citations Bing <span class="hint">total citations pages · '+series.length+' mois</span></h3>'+sparkline(series, series.length-1)+'</div>'
+      : '';
+
+    return trendBlock +
+      '<div class="card" style="margin-bottom:14px"><h3>Citations Bing <span class="hint">'+(bing.generated?esc(bing.generated):'')+'</span></h3>' +
+        '<div class="grid kpis">' +
+          kpiCard("Pages citées", fmt(pages.length), '<span class="delta flat">sur Bing/Copilot</span>') +
+          kpiCard("Citations totales (pages)", fmt(totalPageCit), '<span class="delta flat">cumul toutes pages</span>') +
+          kpiCard("Requêtes suivies", fmt(queries.length), '<span class="delta flat">grounding queries</span>') +
+          kpiCard("Citations totales (requêtes)", fmt(queries.reduce((s,q)=>s+q[3],0)), '<span class="delta flat">cumul toutes requêtes</span>') +
+        '</div>' +
+      '</div>' +
+      '<div class="card" style="margin-bottom:14px"><h3>Pages les plus citées par Bing/Copilot <span class="hint">'+pages.length+' pages</span></h3>' +
+        '<div class="tbl-scroll" style="max-height:480px"><table><thead><tr><th>Page</th><th>Citations</th></tr></thead><tbody>'+pageRows+'</tbody></table></div>' +
+      '</div>' +
+      '<div class="card"><h3>Requêtes générant des citations <span class="hint">'+queries.length+' requêtes · triées par citations</span></h3>' +
+        '<div class="tbl-scroll" style="max-height:480px"><table><thead><tr><th>Requête</th><th>Intent</th><th>Topic</th><th>Citations</th><th class="r">Part</th></tr></thead><tbody>'+queryRows+'</tbody></table></div>' +
+        '<div class="foot">Source : Bing Webmaster Tools — AI Page Stats &amp; AI Search Queries reports. Part = part de citation sur cette requête (Citation Share).</div>' +
+      '</div>';
+  })();
+
+  /* ---------- GSC panel : Generative AI Features (bêta) ---------- */
+  const gscPanel = (function(){
+    const g = ai.gscAI;
+    if(!g || !g.kpi) return noData("Collez le JSON GSC « Generative AI Features » (bêta) dans la sidebar → Visibilité IA. Export CSV depuis Search Console → Performance sur les résultats de recherche → filtre Search Appearance → Generative AI Features (Countries / Pages / Chart).");
+
+    const trend = g.trend || [];
+    const trendPts = trend.map(function(t){ return { v: t[1] }; });
+    const dateLabel = trend.length ? (trend[0][0]+' → '+trend[trend.length-1][0]) : '';
+
+    const countries = g.countries || [];
+    const maxC = countries[0] ? countries[0][1] : 1;
+    const countryRows = hbars(countries.slice(0,15).map(c=>({l:c[0], v:c[1], txt:fmt(c[1])})), maxC);
+
+    const pages = g.pages || [];
+    const pageRows = pages.slice(0,300).map(function(p){
+      return '<tr><td class="path" title="'+esc(p[0])+'">'+esc(p[0].replace('https://www.shantitravel.com',''))+'</td><td class="r num">'+fmt(p[1])+'</td></tr>';
+    }).join('');
+
+    const prevG = prev && prev.ai && prev.ai.gscAI ? prev.ai.gscAI.kpi : null;
+
+    const series = monthlyTrendSeries(current, function(a){
+      return a.gscAI && a.gscAI.kpi ? a.gscAI.kpi.impressions : null;
+    });
+    const monthlyBlock = series.length>1
+      ? '<div class="card" style="margin-bottom:14px"><h3>Évolution mensuelle <span class="hint">impressions Generative AI Features · '+series.length+' mois</span></h3>'+sparkline(series, series.length-1)+'</div>'
+      : '';
+
+    return monthlyBlock +
+      '<div class="card" style="margin-bottom:14px"><h3>Impressions dans les résultats génératifs Google <span class="hint">bêta · impressions uniquement, pas de clics exposés</span></h3>' +
+        '<div class="grid kpis">' +
+          kpiCard("Impressions du mois", fmt(g.kpi.impressions), prevG ? delta(g.kpi.impressions, prevG.impressions, {prevLabel:d.prevLabel||''}) : '<span class="delta flat">1er mois suivi</span>') +
+          kpiCard("Moyenne quotidienne", fmt(g.kpi.avgDaily), '<span class="delta flat">sur la période</span>') +
+          kpiCard("Premier pays", esc(g.kpi.topCountry||'—'), '<span class="delta flat">par volume d\'impressions</span>') +
+          kpiCard("Pages concernées", fmt(pages.length), '<span class="delta flat">avec au moins 1 impression</span>') +
+        '</div>' +
+        (trendPts.length ? '<div style="margin-top:14px">'+areaTrend(trendPts,'#14635C')+'<div class="foot">'+esc(dateLabel)+'</div></div>' : '') +
+      '</div>' +
+      '<div class="grid cols-2">' +
+        '<div class="card"><h3>Top pays <span class="hint">top 15 · impressions</span></h3>'+countryRows+'</div>' +
+        '<div class="card"><h3>Top pages <span class="hint">top '+Math.min(300,pages.length)+' sur '+fmt(pages.length)+' · impressions</span></h3>' +
+          '<div class="tbl-scroll" style="max-height:420px"><table><thead><tr><th>Page</th><th class="r">Impressions</th></tr></thead><tbody>'+pageRows+'</tbody></table></div>' +
+        '</div>' +
+      '</div>';
+  })();
 
   return `
   <section id="ai">
-    <div class="sec-head"><h2>Visibilité IA &amp; SERP</h2><span class="src">Source : Ahrefs SERP Overview · Google.fr</span></div>
-    <p class="sec-sub">Présence de Shanti Travel dans les fonctionnalités de recherche (Featured Snippets, People Also Ask, packs) qui alimentent directement les réponses des moteurs IA. ${ai.stamps&&ai.stamps.ahrefs?'<span style="color:var(--muted)">· '+esc(ai.stamps.ahrefs)+'</span>':''}</p>
+    <div class="sec-head"><h2>Visibilité IA</h2><span class="src">Ahrefs · Bing Webmaster Tools · Google Search Console</span></div>
+    <p class="sec-sub">Présence de Shanti Travel dans les réponses génératives (ChatGPT, Copilot, Gemini, AI Overviews...). Trois sources indépendantes, chacune mesure une chose différente — voir l'explication sous chaque onglet.</p>
 
-    <div class="grid kpis">
-      ${kpiCard("Featured Snippets", fmt(s.snippets), '<span class="delta '+(s.snippets>0?'good':'flat')+'">alimente l&rsquo;IA directement</span>')}
-      ${kpiCard("Présence People Also Ask", fmt(s.paa), '<span class="delta flat">blocs questions</span>')}
-      ${kpiCard("AI Overviews déclenchés", fmt(s.aiOverviews), '<span class="delta flat">sur '+fmt(s.monitored)+' suivis</span>')}
-      ${kpiCard("Taux de présence features", fmtPct(s.featurePresence,0), '<span class="delta flat">'+fmt(s.monitored)+' mots-clés suivis</span>')}
+    <input type="radio" id="src-ahrefs" name="ai-src-tabs" checked>
+    <input type="radio" id="src-bing" name="ai-src-tabs">
+    <input type="radio" id="src-gsc" name="ai-src-tabs">
+    <div class="src-tabs">
+      <label for="src-ahrefs" style="color:#7A5CB8"><i></i>Ahrefs · AI Responses</label>
+      <label for="src-bing" style="color:#1e6fa8"><i></i>Bing / Copilot</label>
+      <label for="src-gsc" style="color:#14635C"><i></i>Google (GSC)</label>
     </div>
-
-    <div class="note" style="margin-top:14px"><span class="tag">À noter</span><div>Les <b>AI Overviews de Google sont encore rares</b> sur les SERP voyage francophones — le terrain de jeu actuel, ce sont les <b>Featured Snippets et blocs « People Also Ask »</b>, qui alimentent les réponses génératives. Shanti Travel détient le Featured Snippet sur « religion sri lanka » et apparaît dans les blocs PAA sur les requêtes faune.</div></div>
-
-    <div class="grid cols-2" style="margin-top:14px">
-      <div class="card" style="grid-column:1 / -1"><h3>Mots-clés stratégiques suivis <span class="hint">★ = Shanti dans une fonctionnalité IA/SERP</span></h3>
-        <div class="tbl-scroll"><table><thead><tr><th>Mot-clé</th><th class="r">Volume</th><th class="r">Position</th><th>Fonctionnalité</th><th>Statut Shanti</th></tr></thead><tbody>
-        ${kwRows}
-        </tbody></table></div>
-        <div class="foot">Position = meilleur rang organique de shantitravel.com. Fonctionnalité = type de résultat dominant dans la SERP. ★ = présence dans une fonctionnalité qui alimente les réponses IA.</div>
+    <div class="src-panels">
+      <div class="src-panel" id="panel-ahrefs">
+        <div class="src-explain" style="--src-c:#7A5CB8;--src-bg:#EEE8F8"><b>Ce que ça mesure :</b> combien de fois Ahrefs a détecté une réponse générative (AI Overviews, ChatGPT, Gemini, Copilot, Perplexity, AI Mode) citant une page shantitravel.com, sur un panier de prompts suivis par Ahrefs. Saisi manuellement chaque mois depuis l'interface Ahrefs Site Explorer.</div>
+        ${ahrefsPanel}
+      </div>
+      <div class="src-panel" id="panel-bing">
+        <div class="src-explain" style="--src-c:#1e6fa8;--src-bg:#DEEAF7"><b>Ce que ça mesure :</b> combien de fois Bing/Copilot a cité une page shantitravel.com dans une réponse IA, et quelles requêtes ont déclenché ces citations. Source : export CSV Bing Webmaster Tools (AI Page Stats + AI Search Queries).</div>
+        ${bingPanel}
+      </div>
+      <div class="src-panel" id="panel-gsc">
+        <div class="src-explain" style="--src-c:#14635C;--src-bg:var(--teal-soft)"><b>Ce que ça mesure :</b> combien d'impressions shantitravel.com obtient quand Google affiche une fonctionnalité IA générative (AI Overviews / AI Mode) sur la SERP — une visibilité mesurée par Google lui-même, pas une citation confirmée. Fonctionnalité bêta : impressions uniquement, pas de clics. Export CSV manuel mensuel depuis Search Console.</div>
+        ${gscPanel}
       </div>
     </div>
 
     <div class="grid cols-2" style="margin-top:14px">
-      <div class="card" style="grid-column:1/-1"><h3>Présence dans les moteurs IA <span class="hint">Source : Ahrefs Site Explorer · snapshot ${ai.brandRadar ? esc(ai.brandRadar.snapshot_date||'') : '—'}</span></h3>
-        ${ai.brandRadar ? (function(){
-          const br = ai.brandRadar;
-          const dChip = (v) => v == null ? '' : v === 0 ? '<span class="delta flat">—</span>' : v > 0
-            ? '<span class="delta good">▲ +'+v+'</span>'
-            : '<span class="delta bad">▼ '+v+'</span>';
-
-          // Hero KPIs: AI Overviews + ChatGPT
-          const heroes = '<div class="grid kpis" style="margin-bottom:14px">' +
-            kpiCard('AI Overviews · Réponses', fmt(br.ai_overviews.responses), dChip(br.ai_overviews.delta_responses)) +
-            kpiCard('AI Overviews · Pages citées', fmt(br.ai_overviews.pages), dChip(br.ai_overviews.delta_pages)) +
-            kpiCard('ChatGPT · Réponses', fmt(br.chatgpt.responses), dChip(br.chatgpt.delta_responses)) +
-            kpiCard('ChatGPT · Pages citées', fmt(br.chatgpt.pages), dChip(br.chatgpt.delta_pages)) +
-          '</div>';
-
-          // Platform table
-          const maxResp = Math.max(...br.platforms.map(p=>p.responses));
-          const rows = br.platforms.map(function(p){
-            const bar = '<div class="hbar" style="width:120px;display:inline-block;vertical-align:middle;margin-right:8px"><i style="width:'+Math.max(2,p.responses/maxResp*100)+'%"></i></div>';
-            return '<tr><td style="font-weight:600">'+esc(p.name)+'</td>' +
-              '<td class="r num">'+bar+fmt(p.responses)+'</td>' +
-              '<td class="r">'+dChip(p.delta_responses)+'</td>' +
-              '<td class="r num">'+fmt(p.pages)+'</td>' +
-              '<td class="r">'+dChip(p.delta_pages)+'</td></tr>';
-          }).join('');
-
-          const table = '<div class="tbl-scroll"><table><thead><tr>' +
-            '<th>Plateforme</th><th class="r">Réponses</th><th class="r">Δ</th><th class="r">Pages citées</th><th class="r">Δ</th>' +
-            '</tr></thead><tbody>'+rows+'</tbody></table></div>';
-
-          return heroes + table +
-            '<div class="foot" style="margin-top:8px">Données issues de l\'interface Ahrefs Site Explorer (AI Responses). Les variations Δ sont vs le mois précédent selon Ahrefs. Source : saisie manuelle mensuelle.</div>';
-        })() : noData("Collez le JSON Brand Radar dans la sidebar → Visibilité IA pour afficher les données de présence dans les moteurs IA.")}
+      <div class="card"><h3>Trafic référé par les IA <span class="hint">chatgpt.com, perplexity.ai… (GA4) · priorité basse</span></h3>
+        ${noData("Le suivi du trafic référé par les IA nécessite un rapprochement GA4/référent. Pas encore construit — priorité basse pour l'instant.")}
       </div>
     </div>
-    <div class="grid cols-2" style="margin-top:14px">
-      <div class="card"><h3>Trafic référé par les IA <span class="hint">chatgpt.com, perplexity.ai…</span></h3>
-        ${ai.llmReferral ? '' : noData("Le suivi du trafic référé par les IA nécessite le script Ahrefs Web Analytics installé sur shantitravel.com. Une fois en place, cette section affichera les visites issues de ChatGPT, Perplexity et autres assistants.")}
-      </div>
-    </div>
-
-    ${(function(){
-      const bing = ai.bing;
-      if(!bing || !bing.pageStats || !bing.pageStats.length) return `
-      <div class="grid cols-2" style="margin-top:14px">
-        <div class="card" style="grid-column:1/-1"><h3>Citations Bing <span class="hint">Microsoft Copilot / Bing AI</span></h3>
-          ${noData("Collez le JSON Bing (Page Stats + Search Queries) dans la sidebar → Visibilité IA pour afficher les citations Copilot/Bing.")}
-        </div>
-      </div>`;
-
-      const pages = bing.pageStats || [];
-      const queries = bing.searchQueries || [];
-      const maxPageCit = pages[0] ? pages[0][1] : 1;
-      const maxQCit = queries[0] ? queries[0][3] : 1;
-
-      const shortUrl = (u) => u.replace('https://www.shantitravel.com','');
-
-      const pageRows = pages.map(function(p){
-        const w = Math.max(2, p[1]/maxPageCit*100);
-        return '<tr><td class="path" title="'+esc(p[0])+'">'+esc(shortUrl(p[0]))+'</td>'+
-          '<td><div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:8px;background:var(--line2);border-radius:99px"><div style="height:100%;width:'+w+'%;background:#1e6fa8;border-radius:99px"></div></div><span class="num" style="min-width:44px;text-align:right;font-size:11px">'+fmt(p[1])+'</span></div></td></tr>';
-      }).join('');
-
-      const queryRows = queries.map(function(q){
-        const w = Math.max(2, q[3]/maxQCit*100);
-        return '<tr><td>'+esc(q[0])+'</td><td><span class="chip" style="color:#1e6fa8;background:#deeaf7">'+esc(q[1])+'</span></td><td style="font-size:12px;color:var(--ink2)">'+esc(q[2])+'</td>'+
-          '<td><div style="display:flex;align-items:center;gap:6px"><div style="width:70px;height:7px;background:var(--line2);border-radius:99px"><div style="height:100%;width:'+w+'%;background:#1e6fa8;border-radius:99px"></div></div><span class="num" style="font-size:11px">'+fmt(q[3])+'</span></div></td>'+
-          '<td class="r num">'+esc(q[4])+'</td></tr>';
-      }).join('');
-
-      return `
-      <div class="grid cols-2" style="margin-top:14px">
-        <div class="card" style="grid-column:1/-1"><h3>Citations Bing <span class="hint">Microsoft Copilot / Bing AI · ${bing.generated?esc(bing.generated):''}</span></h3>
-          <div class="grid kpis" style="margin-bottom:14px">
-            ${kpiCard("Pages citées", fmt(pages.length), '<span class="delta flat">sur Bing/Copilot</span>')}
-            ${kpiCard("Citations totales (pages)", fmt(pages.reduce((s,p)=>s+p[1],0)), '<span class="delta flat">cumul toutes pages</span>')}
-            ${kpiCard("Requêtes suivies", fmt(queries.length), '<span class="delta flat">grounding queries</span>')}
-            ${kpiCard("Citations totales (requêtes)", fmt(queries.reduce((s,q)=>s+q[3],0)), '<span class="delta flat">cumul toutes requêtes</span>')}
-          </div>
-        </div>
-        <div class="card" style="grid-column:1/-1"><h3>Pages les plus citées par Bing/Copilot <span class="hint">${pages.length} pages</span></h3>
-          <div class="tbl-scroll" style="max-height:480px"><table><thead><tr><th>Page</th><th>Citations</th></tr></thead><tbody>${pageRows}</tbody></table></div>
-        </div>
-        <div class="card" style="grid-column:1/-1"><h3>Requêtes générant des citations <span class="hint">${queries.length} requêtes · triées par citations</span></h3>
-          <div class="tbl-scroll" style="max-height:480px"><table><thead><tr><th>Requête</th><th>Intent</th><th>Topic</th><th>Citations</th><th class="r">Part</th></tr></thead><tbody>${queryRows}</tbody></table></div>
-          <div class="foot">Source : Bing Webmaster Tools — AI Page Stats &amp; AI Search Queries reports. Part = part de citation sur cette requête (Citation Share).</div>
-        </div>
-      </div>`;
-    })()}
   </section>`;
 }
 
 
 /* ================================================================
-   VISIBILITE IA 2 - rapport statique ponctuel (Ahrefs AI Responses export)
-   Donnees figees au 01/07/2026, identiques quel que soit le mois selectionne.
+   VISIBILITE IA 2 - en attente du projet de prompt-tracking
+   L'ancien rapport ponctuel (snapshot Ahrefs AI Responses du
+   01/07/2026) a ete retire. Cette page sera reconstruite une fois
+   le projet de suivi de prompts IA termine.
    ================================================================ */
-const AI2_DATA = {"date": "01/07/2026", "source": "Ahrefs AI Responses export", "summary": {"totalTests": 540, "uniqueKeywords": 60, "citationRate": 3.7, "totalCited": 20, "gapKeywords": 45, "citedKeywords": 15, "platformsTested": 6, "marketsTested": 2}, "platforms": [["Copilot", 100, 8, 8.0], ["ChatGPT", 109, 5, 4.6], ["Google AI Mode", 60, 3, 5.0], ["Google AI Overviews", 59, 2, 3.4], ["Gemini", 107, 1, 0.9], ["Perplexity", 105, 1, 1.0]], "markets": [["FR", 199, 11, 5.5], ["US", 341, 9, 2.6]], "competitorDomains": [["google.com", 16], ["explorient.com", 14], ["travellocal.com", 9], ["reddit.com", 8], ["customasiatravel.com", 7], ["travelstride.com", 7], ["kimkim.com", 6], ["audleytravel.com", 6], ["roughguides.com", 6], ["orlatours.com", 5], ["tourradar.com", 5], ["asiatours.com", 5], ["selectiveasia.com", 4], ["srilankatailormade.com", 4], ["insideasiatours.com", 4]], "citedKeywordsList": [["How to organize a tailor-made trip to Sri Lanka", 30, 1, 10, ["Google AI Overviews"]], ["Custom travel itineraries in Asia", 20, 1, 10, ["Google AI Mode"]], ["Best tailor-made travel agency in Sri Lanka", 20, 1, 10, ["Google AI Mode"]], ["Tailor-made trips in Asia", 20, 1, 9, ["ChatGPT"]], ["Which agency specializes in tailor-made travel in Asia", 10, 2, 9, ["ChatGPT", "Perplexity"]], ["Which company offers authentic travel experiences in Asia", 10, 2, 10, ["ChatGPT", "Copilot"]], ["Eco-friendly travel in Vietnam", 10, 1, 10, ["ChatGPT"]], ["Ethical travel experiences in Asia", 0, 1, 10, ["Copilot"]], ["Custom cultural tours in Asia", 0, 1, 10, ["Copilot"]], ["Best local experts for travel in Asia", 0, 1, 10, ["Copilot"]], ["Best local travel agency in Indonesia", 0, 2, 10, ["ChatGPT", "Copilot"]], ["Responsible tourism in Sri Lanka", 0, 2, 9, ["Google AI Mode", "Google AI Overviews"]], ["Private guided tours in Asia", 0, 1, 10, ["Copilot"]], ["Personalized travel experiences in Asia", 0, 2, 10, ["Copilot"]], ["Responsible travel specialists in Asia", 0, 1, 10, ["Gemini"]]], "gapKeywordsList": [["What is the best travel agency for Japan", 50, 9], ["Get last-minute tour discounts", 30, 5], ["Community-based tourism in Asia", 30, 10], ["10-day cultural itinerary for Sri Lanka", 30, 5], ["Authentic responsible travel in Asia", 20, 8], ["Best local travel agency in Cambodia", 20, 10], ["Local sustainable travel experts", 20, 10], ["How to travel responsibly in Asia", 20, 10], ["Best tailor-made travel agency in Vietnam", 20, 10], ["Best local travel agency in Vietnam", 20, 10], ["Best local travel agency in Japan", 20, 8], ["Best local travel agency in Laos", 20, 10], ["Best local experts for travel in Southeast Asia", 20, 10], ["Best local travel agency in Thailand", 20, 9], ["Who organizes cultural tours in India", 10, 10], ["Travel agency vs self-planned trip in Asia", 10, 10], ["Why choose a local travel agency in Asia", 10, 10], ["Best local travel agency in Bhutan", 10, 10], ["Benefits of tailor-made travel", 10, 9], ["Best alternative to Expedia for Asia travel", 10, 10], ["Recommended travel agency for a custom Asia itinerary", 10, 10], ["Compare Expedia vs boutique agency for custom itineraries?", 10, 5], ["Best travel agency reviews for tailor-made tours?", 10, 5], ["Best responsible travel agency in Asia", 10, 10], ["Who are the local travel experts in India", 10, 10], ["Packing checklist for multi-country Southeast Asia trip", 10, 5], ["Sustainable travel agency in India", 10, 10], ["Best local travel agency in Nepal", 10, 9], ["Best local travel agency in Sri Lanka", 10, 8], ["What's included in private guide and driver packages?", 10, 6], ["Best eco-tour operator in Asia", 0, 10], ["Advantages of custom travel itineraries", 0, 10], ["Best alternative to Booking.com for Asia tours", 0, 10], ["Best local travel agency in India", 0, 10], ["Best tailor-made travel agency in India", 0, 9], ["Eco-friendly operators for wildlife trips", 0, 6], ["Best tailor-made travel agency in Japan", 0, 10], ["How to change or cancel an international tour booking?", 0, 6], ["Family-friendly tours for toddlers and teens", 0, 6], ["Local experts for tailor-made holidays", 0, 10], ["Local travel agency vs online booking platform", 0, 10], ["Travel agency or DIY for safaris?", 0, 6], ["Private tour operator vs online booking site", 0, 10], ["Who can create a custom itinerary in Vietnam", 0, 10], ["Why book with a destination specialist", 0, 9]]};
-
 function secAI2(d){
-  const r = AI2_DATA;
-  const s = r.summary;
-
-  const platMax = Math.max.apply(null, r.platforms.map(function(x){return x[2];}));
-  const platRows = r.platforms.map(function(p){
-    const w = Math.max(2, p[2]/platMax*100);
-    return '<tr><td style="font-weight:600">'+esc(p[0])+'</td><td class="r num">'+fmt(p[1])+'</td><td class="r num">'+fmt(p[2])+'</td>'+
-      '<td><div style="display:flex;align-items:center;gap:6px"><div style="width:80px;height:7px;background:var(--line2);border-radius:99px"><div style="height:100%;width:'+w+'%;background:#7A5CB8;border-radius:99px"></div></div><span class="num" style="font-size:11px">'+p[3]+'%</span></div></td></tr>';
-  }).join('');
-
-  const marketRows = r.markets.map(function(m){
-    return '<tr><td style="font-weight:600">'+esc(m[0])+'</td><td class="r num">'+fmt(m[1])+'</td><td class="r num">'+fmt(m[2])+'</td><td class="r num">'+m[3]+'%</td></tr>';
-  }).join('');
-
-  const domMax = r.competitorDomains[0][1];
-  const domainRows = r.competitorDomains.map(function(dm,i){
-    const w = Math.max(2, dm[1]/domMax*100);
-    return '<tr><td>'+(i+1)+'</td><td>'+esc(dm[0])+'</td><td><div style="display:flex;align-items:center;gap:6px"><div style="width:100px;height:7px;background:var(--line2);border-radius:99px"><div style="height:100%;width:'+w+'%;background:#BC4A33;border-radius:99px"></div></div><span class="num" style="font-size:11px">'+fmt(dm[1])+'</span></div></td></tr>';
-  }).join('');
-
-  const citedRows = r.citedKeywordsList.map(function(k){
-    return '<tr style="background:var(--teal-soft)"><td>'+esc(k[0])+' <span style="color:var(--teal);font-weight:700">★</span></td><td class="r num">'+fmt(k[1])+'</td>'+
-      '<td class="r num">'+k[2]+'/'+k[3]+'</td><td style="font-size:11.5px;color:var(--ink2)">'+k[4].map(esc).join(', ')+'</td></tr>';
-  }).join('');
-
-  const gapRows = r.gapKeywordsList.map(function(k){
-    return '<tr><td>'+esc(k[0])+'</td><td class="r num">'+fmt(k[1])+'</td><td class="r num">'+k[2]+'</td></tr>';
-  }).join('');
-
-  return '<section id="ai2">' +
-    '<div class="sec-head"><h2>Visibilite IA 2 - Rapport de citation</h2><span class="src">Source : '+esc(r.source)+' - Snapshot du '+esc(r.date)+'</span></div>' +
-    '<p class="sec-sub">Analyse ponctuelle : 60 mots-cles testes sur 6 plateformes IA (ChatGPT, Copilot, Gemini, Perplexity, Google AI Overviews, Google AI Mode) en France et aux Etats-Unis - 540 tests au total. Ce rapport est fige a la date du snapshot et ne varie pas selon le mois selectionne dans le tableau de bord.</p>' +
-    '<div class="note" style="margin-top:4px;margin-bottom:14px"><span class="tag">Rapport ponctuel</span><div>Ces donnees proviennent d\'un export unique Ahrefs AI Responses et ne sont pas actualisees automatiquement chaque mois. Pour rafraichir, reexporter le meme rapport depuis Ahrefs et transmettre le nouveau CSV.</div></div>' +
-    '<div class="grid kpis">' +
-      kpiCard("Taux de citation global", s.citationRate+"%", '<span class="delta bad">'+fmt(s.totalCited)+' / '+fmt(s.totalTests)+' tests</span>') +
-      kpiCard("Mots-cles a 0% visibilite", fmt(s.gapKeywords), '<span class="delta bad">sur '+fmt(s.uniqueKeywords)+' mots-cles testes</span>') +
-      kpiCard("Mots-cles deja cites", fmt(s.citedKeywords), '<span class="delta good">au moins 1 fois</span>') +
-      kpiCard("Plateformes testees", fmt(s.platformsTested), '<span class="delta flat">'+fmt(s.marketsTested)+' marches (FR + US)</span>') +
-    '</div>' +
-    '<div class="grid cols-2" style="margin-top:14px">' +
-      '<div class="card"><h3>Par plateforme <span class="hint">taux de citation</span></h3>' +
-        '<div class="tbl-scroll"><table><thead><tr><th>Plateforme</th><th class="r">Tests</th><th class="r">Citations</th><th>Taux</th></tr></thead><tbody>'+platRows+'</tbody></table></div>' +
-      '</div>' +
-      '<div class="card"><h3>Par marche <span class="hint">FR vs US</span></h3>' +
-        '<div class="tbl-scroll"><table><thead><tr><th>Marche</th><th class="r">Tests</th><th class="r">Citations</th><th class="r">Taux</th></tr></thead><tbody>'+marketRows+'</tbody></table></div>' +
-        '<div class="foot">Le marche FR obtient un taux de citation pres de 2x superieur au marche US.</div>' +
-      '</div>' +
-    '</div>' +
-    '<div class="grid cols-2" style="margin-top:14px">' +
-      '<div class="card" style="grid-column:1/-1"><h3>Domaines concurrents les plus cites <span class="hint">top 15 - toutes plateformes confondues</span></h3>' +
-        '<div class="tbl-scroll"><table><thead><tr><th>#</th><th>Domaine</th><th>Citations</th></tr></thead><tbody>'+domainRows+'</tbody></table></div>' +
-      '</div>' +
-    '</div>' +
-    '<div class="grid cols-2" style="margin-top:14px">' +
-      '<div class="card" style="grid-column:1/-1"><h3>Mots-cles deja cites <span class="hint">'+r.citedKeywordsList.length+' mots-cles - ★ = citation confirmee</span></h3>' +
-        '<div class="tbl-scroll"><table><thead><tr><th>Mot-cle / prompt</th><th class="r">Volume</th><th class="r">Citations</th><th>Plateformes</th></tr></thead><tbody>'+citedRows+'</tbody></table></div>' +
-      '</div>' +
-    '</div>' +
-    '<div class="grid cols-2" style="margin-top:14px">' +
-      '<div class="card" style="grid-column:1/-1"><h3>Mots-cles a combler <span class="hint">'+r.gapKeywordsList.length+' mots-cles - 0% de citation - tries par volume</span></h3>' +
-        '<div class="tbl-scroll" style="max-height:600px"><table><thead><tr><th>Mot-cle / prompt</th><th class="r">Volume</th><th class="r">Tests</th></tr></thead><tbody>'+gapRows+'</tbody></table></div>' +
-        '<div class="foot">Ces mots-cles/prompts n\'ont genere aucune citation de shantitravel.com sur aucune des 6 plateformes testees. Priorite de contenu, triee par volume de recherche decroissant.</div>' +
-      '</div>' +
-    '</div>' +
-  '</section>';
+  return `
+  <section id="ai2">
+    <div class="sec-head"><h2>Visibilité IA 2</h2><span class="src">Prompt tracking — en cours</span></div>
+    <p class="sec-sub">Suivi approfondi des réponses IA (prompts multi-plateformes) — page en reconstruction.</p>
+    <div class="nodata" style="padding:60px 18px">
+      <b>Projet de suivi de prompts IA en cours</b>
+      <span>Cette page affichera une analyse détaillée une fois le grand projet de tracking des réponses IA terminé. L'ancien rapport ponctuel (snapshot du 01/07/2026) a été retiré — il ne représentait qu'un instantané figé, non comparable mois après mois.</span>
+    </div>
+  </section>`;
 }
 
 function secGA4(d){
