@@ -203,6 +203,16 @@ function gvizToMonthKey(v){
   return null;
 }
 
+/* Auto-generated French label for a month key not yet listed in the Sheet's index tab
+   (used when a repo data file introduces a month the Sheet doesn't know about yet) */
+function monthLabelFr(key){
+  const names = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const m = key.match(/^(\d{4})-(\d{2})$/);
+  if(!m) return key;
+  const idx = parseInt(m[2],10) - 1;
+  return (names[idx] || m[2]) + ' ' + m[1];
+}
+
 /* Read an entire tab as array of {month,label,json} rows, parse the json column */
 async function fetchTabRows(tabName){
   try {
@@ -349,7 +359,7 @@ function mergeRepoInto(store, repo){
   });
 }
 
-async function loadAllData(){
+async function loadAllData(manifest){
   setStatus('Lecture des onglets de données…');
   const results = await Promise.all([
     fetchTabRows('vercel'),
@@ -364,7 +374,7 @@ async function loadAllData(){
   ]);
   STORE = { vercel:results[0], gsc:results[1], ahrefs:results[2], kw:results[3], ai:results[4], deep:results[5], ga4:results[6], ga4ch:results[7], shared:results[8] };
 
-  const manifest = await fetchRepoManifest();
+  manifest = manifest || await fetchRepoManifest();
   const repoTabs = Object.keys(manifest);
   if(repoTabs.length){
     setStatus('Lecture des fichiers de données du dépôt…');
@@ -1397,9 +1407,20 @@ async function init() {
       .map(function(r){ const k=gvizToMonthKey(r.c[0].v); return k ? { key: k, label: r.c[1] && r.c[1].v ? String(r.c[1].v) : k } : null; })
       .filter(Boolean);
 
+    // Un fichier data/<tab>/<AAAA-MM>.json peut introduire un mois que le Sheet
+    // ne connaît pas encore (mise à jour 100% par commit, sans toucher l'onglet index).
+    const manifest = await fetchRepoManifest();
+    const knownKeys = new Set(MONTHS.map(function(m){ return m.key; }));
+    Object.values(manifest).forEach(function(monthKeys){
+      (monthKeys||[]).forEach(function(k){
+        if(!knownKeys.has(k)){ MONTHS.push({ key:k, label: monthLabelFr(k) }); knownKeys.add(k); }
+      });
+    });
+    MONTHS.sort(function(a,b){ return a.key.localeCompare(b.key); });
+
     if (!MONTHS.length) throw new Error('Onglet index vide — ajoutez au moins un mois.');
 
-    await loadAllData();
+    await loadAllData(manifest);
 
     buildChrome();
     current = MONTHS[MONTHS.length - 1].key;
