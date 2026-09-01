@@ -134,17 +134,25 @@ At one point a full duplicate helper block (`fmt`, `esc`, `delta`, `kpiCard`, et
 
 ---
 
-## 5. Monthly workflow (what actually happens every month)
+## 5. Monthly workflow (as of Aug 2026 — repo-data-driven, superseding the Sidebar flow below)
 
+Karan does **zero** pasting, clicking, or Sheet editing. He drops raw exports in chat; Claude does everything else, ending with a git push (which redeploys Vercel — unlike the old Sheet-only flow, **this one does need a push every month**, since the data now lives in the repo, not the Sheet).
+
+1. Karan pastes/attaches whatever exports he has for the month, in any order: Vercel's 4 CSVs (Top Countries/Devices/Referrers/Pages), the GSC "Generative AI Features" 3-CSV export, Bing Webmaster Tools' 3 CSVs (AI Page Stats, AI Search Queries, AI Performance Overview — the last one is the daily citations/pages trend, added Sep 2026), and Ahrefs Brand Radar numbers (still a manual UI read — no API).
+2. Claude pulls GSC search performance and Ahrefs metrics itself via MCP — **as of Sep 2026, GSC's own MCP (`gscServer`) is disconnected**, and Ahrefs' pass-through GSC tools (`gsc-performance-history` etc., project_id `4817606`) return no data for this project either (not linked to a GSC integration on Ahrefs' side) — so until one of those is fixed, GSC performance data has no automated source and needs a manual CSV export same as Vercel/Bing. Ahrefs metrics (`site-explorer-metrics-history`, `-domain-rating-history`, `-backlinks-stats`, `-keywords-history`, `-organic-keywords` with `date_compared` for movers) work fine.
+3. **General rule: store the full list Karan provides, never truncate to a top-N.** Vercel pages/referrers/countries, Bing cited pages/queries, GSC AI-feature pages — all go in whole (dashboard tables scroll; only render-time display caps, like GSC's top-300-of-however-many, are for page weight, and the true total is always shown in the KPI).
+4. Claude converts everything to JSON matching the shapes in this doc / `D-schema.md`, writes it via `node tools/write-data.js <tab> <YYYY-MM> <file.json>` (this also rewrites `data/index.json`), commits, and pushes to `main`.
+5. GA4 is unaffected by any of this — still fully automatic via the two Coupler.io dataflows into the `ga4`/`ga4_channels` Sheet tabs, no Claude involvement.
+
+The Sidebar/Sheet flow described below still exists and still works (nothing was removed), but is no longer the primary path — see §2.2b for why and how the repo-file channel takes precedence.
+
+**Old Sidebar-based flow (kept for reference / fallback):**
 1. Karan says "pull GSC + Ahrefs [month]" or similar
-2. Claude pulls GSC via MCP (`get_advanced_search_analytics` — query/page/country dimensions, 50/50/20 row limits) and Ahrefs via MCP (`site-explorer-metrics-history`, `site-explorer-backlinks-stats`, `site-explorer-domain-rating-history`, `site-explorer-keywords-history`, `site-explorer-organic-keywords` with `date_compared` for movers)
-3. Claude builds the JSON matching each tab's expected shape (see actual example files, listed below) and gives Karan a downloadable file
-4. Karan pastes Vercel CSVs (4 files: Top Countries / Top Devices / Top Referrers / Top Pages) — Claude converts to JSON
-5. Karan pastes all JSONs into the Sidebar, one per section, with the month key/label
-6. GA4 is the exception: Karan just clicks "Run" on two Coupler.io dataflows (Landing Page performance → `ga4` tab, Monthly sources performance → `ga4_channels` tab) — fully automatic, no JSON round-trip
-7. AI visibility: Ahrefs SERP overview (per-keyword, ~9 tracked keywords) + Brand Radar screenshot numbers (Karan reads from Ahrefs UI, since the Brand Radar API needs a paid add-on we don't have) + Bing Webmaster Tools export (2 CSVs: AI Page Stats + AI Search Queries) — all three merged into one `ai` JSON
+2. Claude pulls GSC via MCP and Ahrefs via MCP, builds the JSON matching each tab's expected shape, gives Karan a downloadable file
+3. Karan pastes Vercel CSVs — Claude converts to JSON
+4. Karan pastes all JSONs into the Sidebar, one per section, with the month key/label
 
-**No Vercel redeploy is needed for a normal monthly update** — only when the HTML template itself changes.
+**Vercel redeploy:** needed every month now (step 4 above pushes to `main`) — this is a change from the old Sheet-only flow, which needed no redeploy for routine updates.
 
 ---
 

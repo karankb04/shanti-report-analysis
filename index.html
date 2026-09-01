@@ -942,7 +942,20 @@ function secAI(d, prev){
       ? '<div class="card" style="margin-bottom:14px"><h3>Évolution des citations Bing <span class="hint">total citations pages · '+series.length+' mois</span></h3>'+sparkline(series, series.length-1)+'</div>'
       : '';
 
-    return trendBlock +
+    const daily = bing.dailyTrend || [];
+    const dailyBlock = daily.length ? (function(){
+      const citPts = daily.map(function(t){ return { v: t[1] }; });
+      const pagePts = daily.map(function(t){ return { v: t[2] }; });
+      const dLabel = daily[0][0]+' → '+daily[daily.length-1][0];
+      return '<div class="card" style="margin-bottom:14px"><h3>Citations Bing par jour <span class="hint">'+dLabel+'</span></h3>' +
+        '<div class="grid cols-2">' +
+          '<div><div class="foot" style="margin:0 0 6px">Citations / jour</div>'+areaTrend(citPts,'#1e6fa8')+'</div>' +
+          '<div><div class="foot" style="margin:0 0 6px">Pages citées / jour</div>'+areaTrend(pagePts,'#1e6fa8')+'</div>' +
+        '</div>' +
+      '</div>';
+    })() : '';
+
+    return trendBlock + dailyBlock +
       '<div class="card" style="margin-bottom:14px"><h3>Citations Bing <span class="hint">'+(bing.generated?esc(bing.generated):'')+'</span></h3>' +
         '<div class="grid kpis">' +
           kpiCard("Pages citées", fmt(pages.length), '<span class="delta flat">sur Bing/Copilot</span>') +
