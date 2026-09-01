@@ -592,10 +592,10 @@ function secVercel(d){
         <div class="tbl-scroll"><table><thead><tr><th>Page</th><th class="r">Visiteurs</th><th class="r">Pages vues</th></tr></thead><tbody>
         ${v.pages.map(p=>'<tr><td class="path" title="'+esc(p[0])+'">'+esc(p[0])+'</td><td class="r num">'+fmt(p[1])+'</td><td class="r num">'+fmt(p[2])+'</td></tr>').join("")}
         </tbody></table></div></div>
-      <div class="card"><h3>Tous les referrers</h3>
-        <table><thead><tr><th>Source</th><th class="r">Visiteurs</th></tr></thead><tbody>
+      <div class="card"><h3>Tous les referrers <span class="hint">${v.referrers.length} sources</span></h3>
+        <div class="tbl-scroll" style="max-height:480px"><table><thead><tr><th>Source</th><th class="r">Visiteurs</th></tr></thead><tbody>
         ${v.referrers.map(r=>'<tr><td>'+esc(r[0])+'</td><td class="r num">'+fmt(r[1])+'</td></tr>').join("")}
-        </tbody></table>
+        </tbody></table></div>
         <h3 style="margin-top:18px">Détail pays <span class="hint">visiteurs · pages vues</span></h3>
         <div class="tbl-scroll" style="max-height:240px"><table><thead><tr><th>Pays</th><th class="r">Visiteurs</th><th class="r">Pages vues</th></tr></thead><tbody>
         ${(d.label==="Avril 2026"
