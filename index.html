@@ -325,6 +325,7 @@ async function fetchGA4Channels(){
 let MONTHS = [];   // [{key:'2026-05', label:'Mai 2026'}, ...]
 let STORE  = {};   // {vercel:{month:data}, gsc:{...}, ahrefs:{...}, kw:{...}, ai:{...}, shared:{...}}
 let CACHE  = {};   // key → assembled month object
+let GA4_DEEP = null; // single period-block report (data/ga4_deep/report.json) — not month-keyed, see HANDOFF.md §2.2c
 
 /* ---- Fichiers de données versionnés dans le repo : data/<onglet>/<AAAA-MM>.json ----
    Servis par Vercel depuis la même origine que ce fichier — pas de CORS, pas d'auth.
@@ -386,6 +387,12 @@ async function loadAllData(manifest){
       mergeRepoInto(STORE[sk], repoResults[i]);
     });
   }
+
+  // Single period-block report, not month-keyed — see HANDOFF.md §2.2c
+  try {
+    const r = await fetch('data/ga4_deep/report.json', { cache:'no-store' });
+    if(r.ok) GA4_DEEP = await r.json();
+  } catch(e){ /* fichier absent — comportement attendu */ }
 }
 
 function loadMonth(key){
@@ -1222,6 +1229,149 @@ function secGA4(d){
 }
 
 
+/* ================================================================
+   GA4 ANALYSE AVR-AOUT — rapport ponctuel période (pas mois-par-mois)
+   Source : data/ga4_deep/report.json (GA4 Data API direct, pull manuel
+   mensuel — voir HANDOFF.md §2.2c). Ne dépend pas du mois sélectionné.
+   ================================================================ */
+function secGA4Deep(){
+  const r = GA4_DEEP;
+  if(!r) return `
+  <section id="ga4deep">
+    <div class="sec-head"><h2>GA4 Analyse Avr–Août</h2><span class="src">GA4 Data API — pull manuel</span></div>
+    ${noData("Rapport non disponible. Exécutez ga4-report/pull.py, pull2.py, pull3.py puis build.py, et déposez le résultat dans data/ga4_deep/report.json.")}
+  </section>`;
+
+  const m = r.meta, bw = r.basic_metrics.www, bc = r.basic_metrics.connect;
+  const pct1 = (v) => fmtPct(v*100, 1);
+
+  // ---- monthly trend ----
+  const monthLbl = (ym) => ({'202604':'Avr','202605':'Mai','202606':'Juin','202607':'Juil','202608':'Août'})[ym] || ym;
+  const sessSeries = r.monthly_www.map(x=>({m:monthLbl(x.month), v:x.sessions}));
+  const keSeries = r.monthly_www.map(x=>({m:monthLbl(x.month), v:x.key_events_reported}));
+
+  // ---- channels ----
+  const chMax = Math.max(...r.channels.map(c=>c.sessions));
+  const chRows = r.channels.map(c => '<tr><td style="font-weight:600">'+esc(c.channel)+'</td>'+
+    '<td class="r num">'+fmt(c.sessions)+'</td>'+
+    '<td><div class="hbar" style="width:70px;display:inline-block;vertical-align:middle;margin-right:6px"><i style="width:'+Math.max(2,c.sessions/chMax*100)+'%"></i></div></td>'+
+    '<td class="r num">'+pct1(c.engagement_rate)+'</td>'+
+    '<td class="r num">'+fmt(c.key_events_reported)+'</td>'+
+    '<td class="r num" style="color:var(--muted);text-decoration:line-through">'+pct1(c.cvr_reported)+'</td>'+
+    '<td class="r num" style="color:var(--teal);font-weight:600">'+pct1(c.cvr_deduplicated)+'</td></tr>').join('');
+
+  // ---- devices ----
+  const devRows = r.devices.map(d => '<tr><td>'+esc(d.device)+'</td><td class="r num">'+fmt(d.sessions)+'</td><td class="r num">'+pct1(d.engagement_rate)+'</td><td class="r num">'+fmt(d.key_events_reported)+'</td><td class="r num">'+pct1(d.cvr_deduplicated)+'</td></tr>').join('');
+
+  // ---- funnel ----
+  const fn = r.inquiry_funnel;
+  const fnMax = fn.entrants;
+  const fnRows = hbars(fn.steps.map(s=>({l:s.step+(s.drop_from_previous!=null?' (−'+pct1(s.drop_from_previous)+')':''), v:s.users, txt:fmt(s.users)})), fnMax);
+
+  // ---- landing pages (full list, no cap) ----
+  const lpMax = r.landing_pages[0] ? r.landing_pages[0].sessions : 1;
+  const lpRows = r.landing_pages.map(p => '<tr><td class="path" title="'+esc(p.page)+'">'+esc(p.page)+'</td>'+
+    '<td class="r num">'+fmt(p.sessions)+'</td>'+
+    '<td class="r num">'+pct1(p.engagement_rate)+'</td>'+
+    '<td class="r num">'+pct1(p.bounce_rate)+'</td>'+
+    '<td class="r num">'+fmt(p.key_events_reported)+'</td>'+
+    '<td class="r num" style="color:var(--teal);font-weight:600">'+pct1(p.cvr_deduplicated)+'</td></tr>').join('');
+
+  // ---- mobile vs desktop gap ----
+  const gapRows = r.mobile_desktop_gaps.map(g => '<tr><td class="path" title="'+esc(g.page)+'">'+esc(g.page)+'</td>'+
+    '<td class="r num">'+fmt(g.mobile_sessions)+'</td><td class="r num">'+pct1(g.mobile_cvr)+'</td>'+
+    '<td class="r num">'+fmt(g.desktop_sessions)+'</td><td class="r num">'+pct1(g.desktop_cvr)+'</td>'+
+    '<td class="r num" style="color:var(--down);font-weight:600">'+g.cvr_gap_pp.toFixed(1)+' pt</td></tr>').join('');
+
+  // ---- AI traffic ----
+  const aiRows = r.ai_traffic.map(a => '<tr><td>'+esc(a.source)+'</td><td>'+esc(a.channel_assigned)+'</td><td class="r num">'+fmt(a.sessions)+'</td><td class="r num">'+pct1(a.engagement_rate)+'</td><td class="r num">'+fmt(a.key_events_reported)+'</td></tr>').join('');
+
+  // ---- geography / languages ----
+  const geoMax = Math.max(...r.geography.map(g=>g.sessions));
+  const geoBars = hbars(r.geography.slice(0,15).map(g=>({l:g.country, v:g.sessions, txt:fmt(g.sessions)})), geoMax);
+  const langMax = Math.max(...r.languages.map(l=>l.sessions));
+  const langBars = hbars(r.languages.slice(0,10).map(l=>({l:l.language, v:l.sessions, txt:fmt(l.sessions)})), langMax);
+
+  // ---- content trend ----
+  const trendTbl = (rows, colorUp) => '<table><thead><tr><th>Page</th><th class="r">Avant</th><th class="r">Après</th><th class="r">Δ</th></tr></thead><tbody>' +
+    rows.map(t=>'<tr><td class="path" title="'+esc(t.page)+'">'+esc(t.page)+'</td><td class="r num">'+fmt(t.sessions_apr1_jun15)+'</td><td class="r num">'+fmt(t.sessions_jun16_aug31)+'</td>'+
+      '<td class="r num" style="color:'+(colorUp?'var(--up)':'var(--down)')+';font-weight:600">'+(t.change_pct>0?'+':'')+t.change_pct.toFixed(1)+' %</td></tr>').join('') + '</tbody></table>';
+
+  // ---- data quality issues ----
+  const sevColor = {critical:['#BC4A33','#F8E9E5'], medium:['#B98A24','#F6EEDC'], low:['#75818A','#EFEBE2']};
+  const issueRows = r.data_quality_issues.map(function(iss){
+    const c = sevColor[iss.severity] || sevColor.low;
+    return '<div class="note" style="background:'+c[1]+';border-color:'+c[0]+'55;margin-top:8px">'+
+      '<span class="tag" style="color:'+c[0]+';border-color:'+c[0]+'">'+esc(iss.severity)+'</span>'+
+      '<div><b>'+esc(iss.id.replace(/_/g,' '))+'</b> — '+esc(iss.detail)+(iss.impact?' <i>'+esc(iss.impact)+'</i>':'')+'</div></div>';
+  }).join('');
+
+  return `
+  <section id="ga4deep">
+    <div class="sec-head"><h2>GA4 Analyse Avr–Août</h2><span class="src">GA4 Data API · pull manuel mensuel · www.shantitravel.com</span></div>
+    <p class="sec-sub">Rapport ponctuel sur ${esc(m.traffic_window.start)} → ${esc(m.traffic_window.end)}, comparaison YoY sur la même période 2025. Ne change pas selon le mois sélectionné ci-dessus — c'est une analyse de période, pas un instantané mensuel.</p>
+
+    <div class="note" style="margin-bottom:14px"><span class="tag">Fiabilité des données</span><div>
+      <b>Conversions comptées ~2× le nombre réel</b> jusqu'à correction de la config GA4 : ${esc(m.key_event_inflation_reason)}
+      Les colonnes « CVR » ci-dessous montrent le chiffre brut <s>barré</s> et le chiffre corrigé (÷${m.key_event_inflation_factor}) à côté.
+      Fenêtre de conversion : ${esc(m.conversion_window.start)} → ${esc(m.conversion_window.end)} — ${esc(m.conversion_window_reason)}
+      <br><b>connect.shantitravel.com</b> (${esc(m.domains['connect.shantitravel.com'])}) est exclu des chiffres ci-dessous sauf mention contraire — ce n'est pas le même métier que www.
+    </div></div>
+
+    <div class="grid kpis">
+      ${kpiCard("Sessions (www)", fmt(bw.sessions), '<span class="delta flat">'+fmt(bw.users)+' utilisateurs · '+pct1(bw.new_user_share)+' nouveaux</span>')}
+      ${kpiCard("Taux d'engagement", pct1(bw.engagement_rate), '<span class="delta flat">'+bw.avg_session_seconds+'s · '+bw.pages_per_session+' pages/session</span>')}
+      ${kpiCard("Key events (brut)", fmt(bw.key_events_reported), '<span class="delta bad">≈ 2× réel — voir note</span>')}
+      ${kpiCard("Leads réels estimés", fmt(bw.estimated_real_leads), '<span class="delta flat">÷'+m.key_event_inflation_factor+' · fenêtre juil-août</span>')}
+    </div>
+
+    <div class="grid cols-2" style="margin-top:14px">
+      <div class="card"><h3>Sessions mensuelles <span class="hint">avr → août 2026</span></h3>${sparkline(sessSeries, sessSeries.length-1)}</div>
+      <div class="card"><h3>Key events mensuels <span class="hint">le trou avr-juin = pas de tracking, pas une baisse réelle</span></h3>${sparkline(keSeries, keSeries.length-1)}</div>
+    </div>
+
+    <div class="card" style="margin-top:14px"><h3>Par canal <span class="hint">CVR brut <s>barré</s> → CVR corrigé en gras</span></h3>
+      <div class="tbl-scroll"><table><thead><tr><th>Canal</th><th class="r">Sessions</th><th></th><th class="r">Engagement</th><th class="r">Key events</th><th class="r">CVR brut</th><th class="r">CVR corrigé</th></tr></thead><tbody>${chRows}</tbody></table></div>
+    </div>
+
+    <div class="grid cols-2" style="margin-top:14px">
+      <div class="card"><h3>Par appareil</h3><table><thead><tr><th>Appareil</th><th class="r">Sessions</th><th class="r">Engagement</th><th class="r">Key events</th><th class="r">CVR corrigé</th></tr></thead><tbody>${devRows}</tbody></table></div>
+      <div class="card"><h3>Funnel de demande de voyage <span class="hint">${fmt(fn.entrants)} entrants → ${fmt(fn.completions)} soumis (${pct1(fn.completion_rate)}) · juil-août</span></h3>
+        ${fnRows}
+        <div class="foot" style="margin-top:8px"><b style="color:var(--down)">${fmt(fn.lost_at_final_step)} personnes</b> ont rempli les 7 étapes et n'ont pas soumis — plus gros point de fuite du funnel.</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px"><h3>Pages d'entrée <span class="hint">${r.landing_pages.length} pages · fenêtre de conversion juil-août · triées par sessions</span></h3>
+      <div class="tbl-scroll" style="max-height:520px"><table><thead><tr><th>Page</th><th class="r">Sessions</th><th class="r">Engagement</th><th class="r">Rebond</th><th class="r">Key events</th><th class="r">CVR corrigé</th></tr></thead><tbody>${lpRows}</tbody></table></div>
+    </div>
+
+    <div class="card" style="margin-top:14px"><h3>Écart mobile vs desktop <span class="hint">pages avec le plus gros écart de conversion · points de %</span></h3>
+      <div class="tbl-scroll" style="max-height:400px"><table><thead><tr><th>Page</th><th class="r">Sessions mobile</th><th class="r">CVR mobile</th><th class="r">Sessions desktop</th><th class="r">CVR desktop</th><th class="r">Écart</th></tr></thead><tbody>${gapRows}</tbody></table></div>
+      <div class="foot">Mobile = 71% du trafic mais convertit systématiquement moins bien que desktop sur presque toutes les pages.</div>
+    </div>
+
+    <div class="card" style="margin-top:14px"><h3>Trafic référé par les IA <span class="hint">sources IA détectées dans GA4, avr-août</span></h3>
+      <div class="tbl-scroll"><table><thead><tr><th>Source</th><th>Canal assigné</th><th class="r">Sessions</th><th class="r">Engagement</th><th class="r">Key events</th></tr></thead><tbody>${aiRows}</tbody></table></div>
+      <div class="foot">Perplexity atterrit dans « Unassigned », pas dans le canal natif AI Assistant — limite connue de GA4.</div>
+    </div>
+
+    <div class="grid cols-2" style="margin-top:14px">
+      <div class="card"><h3>Géographie <span class="hint">top 15 pays · sessions</span></h3>${geoBars}</div>
+      <div class="card"><h3>Langues <span class="hint">top 10 · sessions</span></h3>${langBars}</div>
+    </div>
+
+    <div class="grid cols-2" style="margin-top:14px">
+      <div class="card"><h3>Pages en perte <span class="hint">avr1-juin15 vs juin16-août31</span></h3>${trendTbl(r.content_trend.losing, false)}</div>
+      <div class="card"><h3>Pages en croissance <span class="hint">avr1-juin15 vs juin16-août31</span></h3>${trendTbl(r.content_trend.gaining, true)}</div>
+    </div>
+
+    <div class="card" style="margin-top:14px"><h3>Problèmes de qualité des données <span class="hint">${r.data_quality_issues.length} problèmes identifiés</span></h3>
+      ${issueRows}
+    </div>
+  </section>`;
+}
+
 /* ==================== CONTRÔLEUR v3 (sheet-driven) ====================
    Data comes from Google Sheet via fetchTabRows/fetchShared.
    Assembled into v1-compatible 'd' objects before rendering.
@@ -1237,7 +1387,8 @@ const PAGES = [
   {id:"deep",     label:"Analyse Approfondie", fn: (d,prev) => secDeep(d,prev)},
   {id:"ai",       label:"Visibilité IA",       fn: (d,prev) => secAI(d,prev)},
   {id:"ai2",      label:"Visibilité IA 2",     fn: (d,prev) => secAI2(d,prev)},
-  {id:"ga4",      label:"Google Analytics 4", fn: (d,prev) => secGA4(d,prev)}
+  {id:"ga4",      label:"Google Analytics 4", fn: (d,prev) => secGA4(d,prev)},
+  {id:"ga4deep",  label:"GA4 Analyse Avr–Août", fn: () => secGA4Deep()}
 ];
 
 let current = null;

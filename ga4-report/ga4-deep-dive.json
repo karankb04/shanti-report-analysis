@@ -1,0 +1,1271 @@
+{
+ "meta": {
+  "property_id": "352360511",
+  "source": "GA4 Data API v1beta",
+  "traffic_window": {
+   "start": "2026-04-01",
+   "end": "2026-08-31"
+  },
+  "conversion_window": {
+   "start": "2026-07-01",
+   "end": "2026-08-31"
+  },
+  "conversion_window_reason": "Conversion events on www.shantitravel.com first fired in July 2026. April-June contain zero key events.",
+  "key_event_inflation_factor": 2.0,
+  "key_event_inflation_reason": "inquiry_submitted and demande_voyage_fr both fire per lead on www. Divide reported key events by ~2 for real leads.",
+  "domains": {
+   "www.shantitravel.com": "marketing site / new business",
+   "connect.shantitravel.com": "existing-guest forms and reviews, NOT sales leads"
+  }
+ },
+ "basic_metrics": {
+  "www": {
+   "sessions": 51678,
+   "users": 42414,
+   "new_users": 41083,
+   "new_user_share": 0.9686,
+   "engagement_rate": 0.6536,
+   "avg_session_seconds": 183,
+   "pages_per_session": 2.35,
+   "bounce_rate": 0.3464,
+   "key_events_reported": 1433,
+   "estimated_real_leads": 716
+  },
+  "connect": {
+   "sessions": 15369,
+   "users": 13908,
+   "engagement_rate": 0.3806,
+   "avg_session_seconds": 99,
+   "pages_per_session": 1.04,
+   "key_events_reported": 2652,
+   "estimated_real_guest_submissions": 1326
+  }
+ },
+ "monthly_www": [
+  {
+   "month": "202604",
+   "sessions": 11455,
+   "users": 9375,
+   "new_users": 8761,
+   "engagement_rate": 0.6072,
+   "pages_per_session": 2.07,
+   "key_events_reported": 0
+  },
+  {
+   "month": "202605",
+   "sessions": 10227,
+   "users": 8575,
+   "new_users": 7967,
+   "engagement_rate": 0.629,
+   "pages_per_session": 2.14,
+   "key_events_reported": 0
+  },
+  {
+   "month": "202606",
+   "sessions": 9774,
+   "users": 7989,
+   "new_users": 7438,
+   "engagement_rate": 0.6481,
+   "pages_per_session": 2.23,
+   "key_events_reported": 0
+  },
+  {
+   "month": "202607",
+   "sessions": 10807,
+   "users": 8770,
+   "new_users": 8212,
+   "engagement_rate": 0.6453,
+   "pages_per_session": 2.32,
+   "key_events_reported": 401
+  },
+  {
+   "month": "202608",
+   "sessions": 11280,
+   "users": 9306,
+   "new_users": 8705,
+   "engagement_rate": 0.6906,
+   "pages_per_session": 2.55,
+   "key_events_reported": 1032
+  }
+ ],
+ "channels": [
+  {
+   "channel": "Paid Search",
+   "sessions": 7725,
+   "engagement_rate": 0.735,
+   "avg_session_seconds": 161,
+   "pages_per_session": 2.34,
+   "key_events_reported": 593,
+   "cvr_reported": 0.0768,
+   "cvr_deduplicated": 0.0384
+  },
+  {
+   "channel": "Organic Search",
+   "sessions": 7059,
+   "engagement_rate": 0.6134,
+   "avg_session_seconds": 232,
+   "pages_per_session": 2.49,
+   "key_events_reported": 210,
+   "cvr_reported": 0.0297,
+   "cvr_deduplicated": 0.0149
+  },
+  {
+   "channel": "Cross-network",
+   "sessions": 3503,
+   "engagement_rate": 0.6103,
+   "avg_session_seconds": 147,
+   "pages_per_session": 2.3,
+   "key_events_reported": 203,
+   "cvr_reported": 0.058,
+   "cvr_deduplicated": 0.029
+  },
+  {
+   "channel": "Paid Social",
+   "sessions": 1117,
+   "engagement_rate": 0.6607,
+   "avg_session_seconds": 136,
+   "pages_per_session": 2.05,
+   "key_events_reported": 166,
+   "cvr_reported": 0.1486,
+   "cvr_deduplicated": 0.0743
+  },
+  {
+   "channel": "Unassigned",
+   "sessions": 1077,
+   "engagement_rate": 0.7242,
+   "avg_session_seconds": 209,
+   "pages_per_session": 1.99,
+   "key_events_reported": 90,
+   "cvr_reported": 0.0836,
+   "cvr_deduplicated": 0.0418
+  },
+  {
+   "channel": "Direct",
+   "sessions": 1013,
+   "engagement_rate": 0.6525,
+   "avg_session_seconds": 268,
+   "pages_per_session": 2.96,
+   "key_events_reported": 126,
+   "cvr_reported": 0.1244,
+   "cvr_deduplicated": 0.0622
+  },
+  {
+   "channel": "Referral",
+   "sessions": 305,
+   "engagement_rate": 0.7377,
+   "avg_session_seconds": 254,
+   "pages_per_session": 2.34,
+   "key_events_reported": 15,
+   "cvr_reported": 0.0492,
+   "cvr_deduplicated": 0.0246
+  },
+  {
+   "channel": "Email",
+   "sessions": 267,
+   "engagement_rate": 0.7116,
+   "avg_session_seconds": 267,
+   "pages_per_session": 3.59,
+   "key_events_reported": 2,
+   "cvr_reported": 0.0075,
+   "cvr_deduplicated": 0.0037
+  },
+  {
+   "channel": "Organic Social",
+   "sessions": 165,
+   "engagement_rate": 0.7879,
+   "avg_session_seconds": 186,
+   "pages_per_session": 3.16,
+   "key_events_reported": 14,
+   "cvr_reported": 0.0848,
+   "cvr_deduplicated": 0.0424
+  },
+  {
+   "channel": "AI Assistant",
+   "sessions": 118,
+   "engagement_rate": 0.6864,
+   "avg_session_seconds": 245,
+   "pages_per_session": 2.87,
+   "key_events_reported": 6,
+   "cvr_reported": 0.0508,
+   "cvr_deduplicated": 0.0254
+  },
+  {
+   "channel": "Paid Other",
+   "sessions": 57,
+   "engagement_rate": 0.7018,
+   "avg_session_seconds": 221,
+   "pages_per_session": 3.0,
+   "key_events_reported": 8,
+   "cvr_reported": 0.1404,
+   "cvr_deduplicated": 0.0702
+  },
+  {
+   "channel": "Organic Video",
+   "sessions": 3,
+   "engagement_rate": 0.3333,
+   "avg_session_seconds": 27,
+   "pages_per_session": 0.67,
+   "key_events_reported": 0,
+   "cvr_reported": 0.0,
+   "cvr_deduplicated": 0.0
+  }
+ ],
+ "devices": [
+  {
+   "device": "mobile",
+   "sessions": 15413,
+   "engagement_rate": 0.6438,
+   "key_events_reported": 928,
+   "cvr_deduplicated": 0.0301
+  },
+  {
+   "device": "desktop",
+   "sessions": 5984,
+   "engagement_rate": 0.759,
+   "key_events_reported": 473,
+   "cvr_deduplicated": 0.0395
+  },
+  {
+   "device": "tablet",
+   "sessions": 661,
+   "engagement_rate": 0.6884,
+   "key_events_reported": 32,
+   "cvr_deduplicated": 0.0242
+  }
+ ],
+ "inquiry_funnel": {
+  "window": "2026-07-01..2026-08-31",
+  "steps": [
+   {
+    "step": "destinations",
+    "users": 1414,
+    "drop_from_previous": null,
+    "share_of_entrants": 1.0
+   },
+   {
+    "step": "travelers",
+    "users": 1322,
+    "drop_from_previous": 0.0651,
+    "share_of_entrants": 0.9349
+   },
+   {
+    "step": "dates",
+    "users": 1308,
+    "drop_from_previous": 0.0106,
+    "share_of_entrants": 0.925
+   },
+   {
+    "step": "budget",
+    "users": 1280,
+    "drop_from_previous": 0.0214,
+    "share_of_entrants": 0.9052
+   },
+   {
+    "step": "stage",
+    "users": 1221,
+    "drop_from_previous": 0.0461,
+    "share_of_entrants": 0.8635
+   },
+   {
+    "step": "story",
+    "users": 1193,
+    "drop_from_previous": 0.0229,
+    "share_of_entrants": 0.8437
+   },
+   {
+    "step": "contact",
+    "users": 1062,
+    "drop_from_previous": 0.1098,
+    "share_of_entrants": 0.7511
+   },
+   {
+    "step": "submitted",
+    "users": 696,
+    "drop_from_previous": 0.3446,
+    "share_of_entrants": 0.4922
+   }
+  ],
+  "entrants": 1414,
+  "completions": 696,
+  "completion_rate": 0.4922,
+  "lost_at_final_step": 366
+ },
+ "landing_pages": [
+  {
+   "page": "/fr/voyage-japon",
+   "sessions": 1698,
+   "engagement_rate": 0.7055,
+   "bounce_rate": 0.2945,
+   "avg_session_seconds": 165,
+   "key_events_reported": 113,
+   "cvr_deduplicated": 0.0333
+  },
+  {
+   "page": "/fr",
+   "sessions": 1455,
+   "engagement_rate": 0.8653,
+   "bounce_rate": 0.1347,
+   "avg_session_seconds": 389,
+   "key_events_reported": 106,
+   "cvr_deduplicated": 0.0364
+  },
+  {
+   "page": "/fr/voyage-sri-lanka",
+   "sessions": 1445,
+   "engagement_rate": 0.6644,
+   "bounce_rate": 0.3356,
+   "avg_session_seconds": 167,
+   "key_events_reported": 92,
+   "cvr_deduplicated": 0.0318
+  },
+  {
+   "page": "/fr/voyage-philippines",
+   "sessions": 940,
+   "engagement_rate": 0.7649,
+   "bounce_rate": 0.2351,
+   "avg_session_seconds": 189,
+   "key_events_reported": 76,
+   "cvr_deduplicated": 0.0404
+  },
+  {
+   "page": "/fr/voyage-bali",
+   "sessions": 885,
+   "engagement_rate": 0.6531,
+   "bounce_rate": 0.3469,
+   "avg_session_seconds": 165,
+   "key_events_reported": 56,
+   "cvr_deduplicated": 0.0316
+  },
+  {
+   "page": "/fr/voyage-inde",
+   "sessions": 716,
+   "engagement_rate": 0.6788,
+   "bounce_rate": 0.3212,
+   "avg_session_seconds": 198,
+   "key_events_reported": 43,
+   "cvr_deduplicated": 0.03
+  },
+  {
+   "page": "/fr/voyage-malaisie",
+   "sessions": 495,
+   "engagement_rate": 0.7939,
+   "bounce_rate": 0.2061,
+   "avg_session_seconds": 185,
+   "key_events_reported": 34,
+   "cvr_deduplicated": 0.0343
+  },
+  {
+   "page": "/fr/voyage-coree-du-sud",
+   "sessions": 465,
+   "engagement_rate": 0.772,
+   "bounce_rate": 0.228,
+   "avg_session_seconds": 173,
+   "key_events_reported": 44,
+   "cvr_deduplicated": 0.0473
+  },
+  {
+   "page": "/fr/voyage-thailande",
+   "sessions": 452,
+   "engagement_rate": 0.6969,
+   "bounce_rate": 0.3031,
+   "avg_session_seconds": 136,
+   "key_events_reported": 23,
+   "cvr_deduplicated": 0.0254
+  },
+  {
+   "page": "/fr/voyage-trek-nepal",
+   "sessions": 435,
+   "engagement_rate": 0.7172,
+   "bounce_rate": 0.2828,
+   "avg_session_seconds": 187,
+   "key_events_reported": 20,
+   "cvr_deduplicated": 0.023
+  },
+  {
+   "page": "/fr/voyage-indonesie",
+   "sessions": 385,
+   "engagement_rate": 0.7351,
+   "bounce_rate": 0.2649,
+   "avg_session_seconds": 196,
+   "key_events_reported": 34,
+   "cvr_deduplicated": 0.0442
+  },
+  {
+   "page": "/fr/voyage-bhoutan",
+   "sessions": 322,
+   "engagement_rate": 0.7019,
+   "bounce_rate": 0.2981,
+   "avg_session_seconds": 205,
+   "key_events_reported": 16,
+   "cvr_deduplicated": 0.0248
+  },
+  {
+   "page": "/fr/voyage-mongolie",
+   "sessions": 307,
+   "engagement_rate": 0.7329,
+   "bounce_rate": 0.2671,
+   "avg_session_seconds": 142,
+   "key_events_reported": 22,
+   "cvr_deduplicated": 0.0358
+  },
+  {
+   "page": "/fr/voyage-vietnam",
+   "sessions": 291,
+   "engagement_rate": 0.7491,
+   "bounce_rate": 0.2509,
+   "avg_session_seconds": 226,
+   "key_events_reported": 18,
+   "cvr_deduplicated": 0.0309
+  },
+  {
+   "page": "/en",
+   "sessions": 262,
+   "engagement_rate": 0.7901,
+   "bounce_rate": 0.2099,
+   "avg_session_seconds": 232,
+   "key_events_reported": 10,
+   "cvr_deduplicated": 0.0191
+  },
+  {
+   "page": "/fr/voyage-laos",
+   "sessions": 253,
+   "engagement_rate": 0.747,
+   "bounce_rate": 0.253,
+   "avg_session_seconds": 206,
+   "key_events_reported": 16,
+   "cvr_deduplicated": 0.0316
+  },
+  {
+   "page": "/fr/voyage-ouzbekistan",
+   "sessions": 234,
+   "engagement_rate": 0.8248,
+   "bounce_rate": 0.1752,
+   "avg_session_seconds": 178,
+   "key_events_reported": 14,
+   "cvr_deduplicated": 0.0299
+  },
+  {
+   "page": "/fr/voyage-inde-du-sud",
+   "sessions": 208,
+   "engagement_rate": 0.75,
+   "bounce_rate": 0.25,
+   "avg_session_seconds": 177,
+   "key_events_reported": 7,
+   "cvr_deduplicated": 0.0168
+  },
+  {
+   "page": "/fr/voyage-cambodge",
+   "sessions": 202,
+   "engagement_rate": 0.6584,
+   "bounce_rate": 0.3416,
+   "avg_session_seconds": 123,
+   "key_events_reported": 16,
+   "cvr_deduplicated": 0.0396
+  },
+  {
+   "page": "/fr/departs-garantis-petit-groupe",
+   "sessions": 175,
+   "engagement_rate": 0.9029,
+   "bounce_rate": 0.0971,
+   "avg_session_seconds": 300,
+   "key_events_reported": 0,
+   "cvr_deduplicated": 0.0
+  },
+  {
+   "page": "/fr/trips",
+   "sessions": 168,
+   "engagement_rate": 0.9226,
+   "bounce_rate": 0.0774,
+   "avg_session_seconds": 349,
+   "key_events_reported": 29,
+   "cvr_deduplicated": 0.0863
+  },
+  {
+   "page": "/fr/voyage-chine",
+   "sessions": 165,
+   "engagement_rate": 0.7697,
+   "bounce_rate": 0.2303,
+   "avg_session_seconds": 289,
+   "key_events_reported": 6,
+   "cvr_deduplicated": 0.0182
+  },
+  {
+   "page": "/fr/voyage-inde-du-nord",
+   "sessions": 147,
+   "engagement_rate": 0.7619,
+   "bounce_rate": 0.2381,
+   "avg_session_seconds": 219,
+   "key_events_reported": 11,
+   "cvr_deduplicated": 0.0374
+  },
+  {
+   "page": "/fr/voyage-australie",
+   "sessions": 116,
+   "engagement_rate": 0.7845,
+   "bounce_rate": 0.2155,
+   "avg_session_seconds": 222,
+   "key_events_reported": 5,
+   "cvr_deduplicated": 0.0216
+  },
+  {
+   "page": "/fr/voyage-taiwan",
+   "sessions": 102,
+   "engagement_rate": 0.7353,
+   "bounce_rate": 0.2647,
+   "avg_session_seconds": 205,
+   "key_events_reported": 4,
+   "cvr_deduplicated": 0.0196
+  },
+  {
+   "page": "/en/travel-indonesia",
+   "sessions": 90,
+   "engagement_rate": 0.7778,
+   "bounce_rate": 0.2222,
+   "avg_session_seconds": 315,
+   "key_events_reported": 4,
+   "cvr_deduplicated": 0.0222
+  },
+  {
+   "page": "/en/travel-japan",
+   "sessions": 89,
+   "engagement_rate": 0.7753,
+   "bounce_rate": 0.2247,
+   "avg_session_seconds": 231,
+   "key_events_reported": 6,
+   "cvr_deduplicated": 0.0337
+  },
+  {
+   "page": "/de/guide-indonesien-urlaub/was-sie-indonesien-essen-sollten",
+   "sessions": 87,
+   "engagement_rate": 0.4253,
+   "bounce_rate": 0.5747,
+   "avg_session_seconds": 153,
+   "key_events_reported": 0,
+   "cvr_deduplicated": 0.0
+  },
+  {
+   "page": "/en/travel-india",
+   "sessions": 85,
+   "engagement_rate": 0.7059,
+   "bounce_rate": 0.2941,
+   "avg_session_seconds": 169,
+   "key_events_reported": 4,
+   "cvr_deduplicated": 0.0235
+  },
+  {
+   "page": "/de/guide-sri-lanka-urlaub/tiere-sri-lanka",
+   "sessions": 84,
+   "engagement_rate": 0.6429,
+   "bounce_rate": 0.3571,
+   "avg_session_seconds": 106,
+   "key_events_reported": 0,
+   "cvr_deduplicated": 0.0
+  },
+  {
+   "page": "/fr/guide-voyage-indonesie/lexique-indonesien-bali",
+   "sessions": 83,
+   "engagement_rate": 0.3614,
+   "bounce_rate": 0.6386,
+   "avg_session_seconds": 82,
+   "key_events_reported": 0,
+   "cvr_deduplicated": 0.0
+  },
+  {
+   "page": "/fr/voyage-hong-kong",
+   "sessions": 72,
+   "engagement_rate": 0.8056,
+   "bounce_rate": 0.1944,
+   "avg_session_seconds": 141,
+   "key_events_reported": 0,
+   "cvr_deduplicated": 0.0
+  },
+  {
+   "page": "/fr/guide-voyage-thailande/animaux-thailande",
+   "sessions": 71,
+   "engagement_rate": 0.4366,
+   "bounce_rate": 0.5634,
+   "avg_session_seconds": 117,
+   "key_events_reported": 0,
+   "cvr_deduplicated": 0.0
+  },
+  {
+   "page": "/fr/trek-himalaya-indien",
+   "sessions": 68,
+   "engagement_rate": 0.5882,
+   "bounce_rate": 0.4118,
+   "avg_session_seconds": 151,
+   "key_events_reported": 0,
+   "cvr_deduplicated": 0.0
+  },
+  {
+   "page": "/fr/voyage-vietnam/vietnam-en-famille",
+   "sessions": 68,
+   "engagement_rate": 0.5882,
+   "bounce_rate": 0.4118,
+   "avg_session_seconds": 150,
+   "key_events_reported": 6,
+   "cvr_deduplicated": 0.0441
+  },
+  {
+   "page": "/fr/guide-voyage-bali/les-animaux-a-bali",
+   "sessions": 62,
+   "engagement_rate": 0.5161,
+   "bounce_rate": 0.4839,
+   "avg_session_seconds": 90,
+   "key_events_reported": 0,
+   "cvr_deduplicated": 0.0
+  },
+  {
+   "page": "/fr/inquiry?destinationSlug=voyage-japon&destination=Japon",
+   "sessions": 60,
+   "engagement_rate": 0.9667,
+   "bounce_rate": 0.0333,
+   "avg_session_seconds": 111,
+   "key_events_reported": 23,
+   "cvr_deduplicated": 0.1917
+  },
+  {
+   "page": "/fr/guide-voyage-egypte/que-mettre-dans-sa-valise-pour-l-egypte",
+   "sessions": 59,
+   "engagement_rate": 0.5254,
+   "bounce_rate": 0.4746,
+   "avg_session_seconds": 128,
+   "key_events_reported": 0,
+   "cvr_deduplicated": 0.0
+  },
+  {
+   "page": "/fr/guide-voyage-inde/calendrier-des-festivals-inde",
+   "sessions": 59,
+   "engagement_rate": 0.5424,
+   "bounce_rate": 0.4576,
+   "avg_session_seconds": 88,
+   "key_events_reported": 0,
+   "cvr_deduplicated": 0.0
+  },
+  {
+   "page": "/fr/voyage-malaisie/safari-vie-sauvage-borneo",
+   "sessions": 59,
+   "engagement_rate": 0.6271,
+   "bounce_rate": 0.3729,
+   "avg_session_seconds": 130,
+   "key_events_reported": 2,
+   "cvr_deduplicated": 0.0169
+  }
+ ],
+ "mobile_desktop_gaps": [
+  {
+   "page": "/fr/voyage-inde",
+   "mobile_sessions": 548,
+   "mobile_cvr": 0.0182,
+   "mobile_engagement": 0.6277,
+   "desktop_sessions": 135,
+   "desktop_cvr": 0.0852,
+   "desktop_engagement": 0.8889,
+   "cvr_gap_pp": 6.69
+  },
+  {
+   "page": "/fr/voyage-bali",
+   "mobile_sessions": 729,
+   "mobile_cvr": 0.024,
+   "mobile_engagement": 0.62,
+   "desktop_sessions": 109,
+   "desktop_cvr": 0.0872,
+   "desktop_engagement": 0.8624,
+   "cvr_gap_pp": 6.32
+  },
+  {
+   "page": "/fr/voyage-philippines",
+   "mobile_sessions": 766,
+   "mobile_cvr": 0.0339,
+   "mobile_engagement": 0.7285,
+   "desktop_sessions": 158,
+   "desktop_cvr": 0.0696,
+   "desktop_engagement": 0.943,
+   "cvr_gap_pp": 3.57
+  },
+  {
+   "page": "/fr/voyage-ouzbekistan",
+   "mobile_sessions": 170,
+   "mobile_cvr": 0.0235,
+   "mobile_engagement": 0.7824,
+   "desktop_sessions": 51,
+   "desktop_cvr": 0.0588,
+   "desktop_engagement": 0.9216,
+   "cvr_gap_pp": 3.53
+  },
+  {
+   "page": "/fr/voyage-bhoutan",
+   "mobile_sessions": 251,
+   "mobile_cvr": 0.0159,
+   "mobile_engagement": 0.6534,
+   "desktop_sessions": 61,
+   "desktop_cvr": 0.0492,
+   "desktop_engagement": 0.9016,
+   "cvr_gap_pp": 3.32
+  },
+  {
+   "page": "/en",
+   "mobile_sessions": 105,
+   "mobile_cvr": 0.0,
+   "mobile_engagement": 0.7429,
+   "desktop_sessions": 155,
+   "desktop_cvr": 0.0323,
+   "desktop_engagement": 0.8258,
+   "cvr_gap_pp": 3.23
+  },
+  {
+   "page": "/fr/voyage-sri-lanka",
+   "mobile_sessions": 1154,
+   "mobile_cvr": 0.0286,
+   "mobile_engagement": 0.6222,
+   "desktop_sessions": 218,
+   "desktop_cvr": 0.0596,
+   "desktop_engagement": 0.8945,
+   "cvr_gap_pp": 3.1
+  },
+  {
+   "page": "/fr/voyage-indonesie",
+   "mobile_sessions": 276,
+   "mobile_cvr": 0.0362,
+   "mobile_engagement": 0.7029,
+   "desktop_sessions": 104,
+   "desktop_cvr": 0.0577,
+   "desktop_engagement": 0.8173,
+   "cvr_gap_pp": 2.15
+  },
+  {
+   "page": "/fr/voyage-mongolie",
+   "mobile_sessions": 247,
+   "mobile_cvr": 0.0324,
+   "mobile_engagement": 0.6842,
+   "desktop_sessions": 56,
+   "desktop_cvr": 0.0536,
+   "desktop_engagement": 0.9464,
+   "cvr_gap_pp": 2.12
+  },
+  {
+   "page": "/fr/voyage-inde-du-sud",
+   "mobile_sessions": 130,
+   "mobile_cvr": 0.0115,
+   "mobile_engagement": 0.6846,
+   "desktop_sessions": 72,
+   "desktop_cvr": 0.0278,
+   "desktop_engagement": 0.875,
+   "cvr_gap_pp": 1.62
+  },
+  {
+   "page": "/fr/voyage-japon",
+   "mobile_sessions": 1332,
+   "mobile_cvr": 0.0319,
+   "mobile_engagement": 0.6614,
+   "desktop_sessions": 287,
+   "desktop_cvr": 0.0418,
+   "desktop_engagement": 0.892,
+   "cvr_gap_pp": 0.99
+  },
+  {
+   "page": "/fr/voyage-vietnam",
+   "mobile_sessions": 197,
+   "mobile_cvr": 0.0305,
+   "mobile_engagement": 0.7005,
+   "desktop_sessions": 79,
+   "desktop_cvr": 0.038,
+   "desktop_engagement": 0.8734,
+   "cvr_gap_pp": 0.75
+  },
+  {
+   "page": "/fr",
+   "mobile_sessions": 719,
+   "mobile_cvr": 0.032,
+   "mobile_engagement": 0.8261,
+   "desktop_sessions": 705,
+   "desktop_cvr": 0.0383,
+   "desktop_engagement": 0.9035,
+   "cvr_gap_pp": 0.63
+  },
+  {
+   "page": "/fr/voyage-coree-du-sud",
+   "mobile_sessions": 376,
+   "mobile_cvr": 0.0452,
+   "mobile_engagement": 0.734,
+   "desktop_sessions": 78,
+   "desktop_cvr": 0.0513,
+   "desktop_engagement": 0.9487,
+   "cvr_gap_pp": 0.61
+  },
+  {
+   "page": "/fr/voyage-malaisie",
+   "mobile_sessions": 379,
+   "mobile_cvr": 0.0343,
+   "mobile_engagement": 0.7467,
+   "desktop_sessions": 102,
+   "desktop_cvr": 0.0392,
+   "desktop_engagement": 0.9608,
+   "cvr_gap_pp": 0.49
+  }
+ ],
+ "ai_traffic": [
+  {
+   "source": "chatgpt.com",
+   "channel_assigned": "AI Assistant",
+   "sessions": 107,
+   "engagement_rate": 0.6916,
+   "avg_session_seconds": 251,
+   "pages_per_session": 3.01,
+   "key_events_reported": 6
+  },
+  {
+   "source": "copilot.com",
+   "channel_assigned": "AI Assistant",
+   "sessions": 6,
+   "engagement_rate": 0.6667,
+   "avg_session_seconds": 279,
+   "pages_per_session": 1.83,
+   "key_events_reported": 0
+  },
+  {
+   "source": "perplexity",
+   "channel_assigned": "Unassigned",
+   "sessions": 6,
+   "engagement_rate": 0.3333,
+   "avg_session_seconds": 30,
+   "pages_per_session": 0.67,
+   "key_events_reported": 0
+  },
+  {
+   "source": "copilot.com",
+   "channel_assigned": "Unassigned",
+   "sessions": 3,
+   "engagement_rate": 0.3333,
+   "avg_session_seconds": 41,
+   "pages_per_session": 1.0,
+   "key_events_reported": 0
+  },
+  {
+   "source": "gemini.google.com",
+   "channel_assigned": "AI Assistant",
+   "sessions": 3,
+   "engagement_rate": 1.0,
+   "avg_session_seconds": 134,
+   "pages_per_session": 1.67,
+   "key_events_reported": 0
+  },
+  {
+   "source": "chatgpt.com",
+   "channel_assigned": "Organic Search",
+   "sessions": 2,
+   "engagement_rate": 0.0,
+   "avg_session_seconds": 7,
+   "pages_per_session": 1.0,
+   "key_events_reported": 0
+  },
+  {
+   "source": "perplexity.ai",
+   "channel_assigned": "AI Assistant",
+   "sessions": 2,
+   "engagement_rate": 0.0,
+   "avg_session_seconds": 0,
+   "pages_per_session": 0.5,
+   "key_events_reported": 0
+  }
+ ],
+ "geography": [
+  {
+   "country": "France",
+   "sessions": 15640,
+   "engagement_rate": 0.6749,
+   "key_events_reported": 1103,
+   "cvr_deduplicated": 0.0353
+  },
+  {
+   "country": "Belgium",
+   "sessions": 1778,
+   "engagement_rate": 0.7092,
+   "key_events_reported": 161,
+   "cvr_deduplicated": 0.0453
+  },
+  {
+   "country": "Switzerland",
+   "sessions": 851,
+   "engagement_rate": 0.7062,
+   "key_events_reported": 34,
+   "cvr_deduplicated": 0.02
+  },
+  {
+   "country": "Germany",
+   "sessions": 660,
+   "engagement_rate": 0.5606,
+   "key_events_reported": 8,
+   "cvr_deduplicated": 0.0061
+  },
+  {
+   "country": "India",
+   "sessions": 444,
+   "engagement_rate": 0.6712,
+   "key_events_reported": 2,
+   "cvr_deduplicated": 0.0023
+  },
+  {
+   "country": "Indonesia",
+   "sessions": 399,
+   "engagement_rate": 0.6015,
+   "key_events_reported": 13,
+   "cvr_deduplicated": 0.0163
+  },
+  {
+   "country": "Canada",
+   "sessions": 222,
+   "engagement_rate": 0.6667,
+   "key_events_reported": 14,
+   "cvr_deduplicated": 0.0315
+  },
+  {
+   "country": "United Kingdom",
+   "sessions": 212,
+   "engagement_rate": 0.7075,
+   "key_events_reported": 16,
+   "cvr_deduplicated": 0.0377
+  },
+  {
+   "country": "Thailand",
+   "sessions": 165,
+   "engagement_rate": 0.6667,
+   "key_events_reported": 2,
+   "cvr_deduplicated": 0.0061
+  },
+  {
+   "country": "Sri Lanka",
+   "sessions": 133,
+   "engagement_rate": 0.5639,
+   "key_events_reported": 0,
+   "cvr_deduplicated": 0.0
+  },
+  {
+   "country": "Spain",
+   "sessions": 124,
+   "engagement_rate": 0.7339,
+   "key_events_reported": 18,
+   "cvr_deduplicated": 0.0726
+  },
+  {
+   "country": "Japan",
+   "sessions": 108,
+   "engagement_rate": 0.6944,
+   "key_events_reported": 0,
+   "cvr_deduplicated": 0.0
+  },
+  {
+   "country": "Austria",
+   "sessions": 95,
+   "engagement_rate": 0.6632,
+   "key_events_reported": 2,
+   "cvr_deduplicated": 0.0105
+  },
+  {
+   "country": "Ireland",
+   "sessions": 93,
+   "engagement_rate": 0.6344,
+   "key_events_reported": 4,
+   "cvr_deduplicated": 0.0215
+  },
+  {
+   "country": "United States",
+   "sessions": 89,
+   "engagement_rate": 0.6854,
+   "key_events_reported": 8,
+   "cvr_deduplicated": 0.0449
+  }
+ ],
+ "languages": [
+  {
+   "language": "French",
+   "sessions": 18647,
+   "engagement_rate": 0.6821,
+   "key_events_reported": 1339,
+   "cvr_deduplicated": 0.0359
+  },
+  {
+   "language": "English",
+   "sessions": 1929,
+   "engagement_rate": 0.6739,
+   "key_events_reported": 70,
+   "cvr_deduplicated": 0.0181
+  },
+  {
+   "language": "German",
+   "sessions": 943,
+   "engagement_rate": 0.5536,
+   "key_events_reported": 16,
+   "cvr_deduplicated": 0.0085
+  },
+  {
+   "language": "Spanish",
+   "sessions": 70,
+   "engagement_rate": 0.6143,
+   "key_events_reported": 2,
+   "cvr_deduplicated": 0.0143
+  },
+  {
+   "language": "Dutch",
+   "sessions": 58,
+   "engagement_rate": 0.7069,
+   "key_events_reported": 2,
+   "cvr_deduplicated": 0.0172
+  },
+  {
+   "language": "Italian",
+   "sessions": 58,
+   "engagement_rate": 0.7069,
+   "key_events_reported": 2,
+   "cvr_deduplicated": 0.0172
+  },
+  {
+   "language": "Thai",
+   "sessions": 34,
+   "engagement_rate": 0.7059,
+   "key_events_reported": 0,
+   "cvr_deduplicated": 0.0
+  },
+  {
+   "language": "Vietnamese",
+   "sessions": 27,
+   "engagement_rate": 0.4444,
+   "key_events_reported": 0,
+   "cvr_deduplicated": 0.0
+  },
+  {
+   "language": "Chinese",
+   "sessions": 15,
+   "engagement_rate": 0.8,
+   "key_events_reported": 0,
+   "cvr_deduplicated": 0.0
+  },
+  {
+   "language": "Portuguese",
+   "sessions": 15,
+   "engagement_rate": 0.8,
+   "key_events_reported": 0,
+   "cvr_deduplicated": 0.0
+  }
+ ],
+ "content_trend": {
+  "losing": [
+   {
+    "page": "/fr/",
+    "sessions_apr1_jun15": 416,
+    "sessions_jun16_aug31": 0,
+    "change_pct": -100.0,
+    "engagement_before": 0.851,
+    "engagement_after": 0.0
+   },
+   {
+    "page": "/fr/voyage-bhoutan",
+    "sessions_apr1_jun15": 845,
+    "sessions_jun16_aug31": 388,
+    "change_pct": -54.1,
+    "engagement_before": 0.4095,
+    "engagement_after": 0.6985
+   },
+   {
+    "page": "/fr/trek-himalaya-indien",
+    "sessions_apr1_jun15": 159,
+    "sessions_jun16_aug31": 83,
+    "change_pct": -47.8,
+    "engagement_before": 0.5849,
+    "engagement_after": 0.5904
+   },
+   {
+    "page": "/fr/guide-voyage-thailande/animaux-thailande",
+    "sessions_apr1_jun15": 172,
+    "sessions_jun16_aug31": 97,
+    "change_pct": -43.6,
+    "engagement_before": 0.4593,
+    "engagement_after": 0.433
+   },
+   {
+    "page": "/fr/voyage-taiwan",
+    "sessions_apr1_jun15": 167,
+    "sessions_jun16_aug31": 123,
+    "change_pct": -26.3,
+    "engagement_before": 0.7605,
+    "engagement_after": 0.7398
+   },
+   {
+    "page": "/fr/voyage-vietnam",
+    "sessions_apr1_jun15": 511,
+    "sessions_jun16_aug31": 403,
+    "change_pct": -21.1,
+    "engagement_before": 0.6125,
+    "engagement_after": 0.7122
+   },
+   {
+    "page": "/fr/voyage-chine",
+    "sessions_apr1_jun15": 234,
+    "sessions_jun16_aug31": 202,
+    "change_pct": -13.7,
+    "engagement_before": 0.7564,
+    "engagement_after": 0.7723
+   },
+   {
+    "page": "/fr/voyage-indonesie",
+    "sessions_apr1_jun15": 523,
+    "sessions_jun16_aug31": 463,
+    "change_pct": -11.5,
+    "engagement_before": 0.6807,
+    "engagement_after": 0.7387
+   },
+   {
+    "page": "/fr/voyage-cambodge",
+    "sessions_apr1_jun15": 232,
+    "sessions_jun16_aug31": 220,
+    "change_pct": -5.2,
+    "engagement_before": 0.6034,
+    "engagement_after": 0.6591
+   },
+   {
+    "page": "/fr/voyage-philippines",
+    "sessions_apr1_jun15": 1153,
+    "sessions_jun16_aug31": 1111,
+    "change_pct": -3.6,
+    "engagement_before": 0.6626,
+    "engagement_after": 0.7705
+   }
+  ],
+  "gaining": [
+   {
+    "page": "/fr/voyage-sri-lanka",
+    "sessions_apr1_jun15": 851,
+    "sessions_jun16_aug31": 1772,
+    "change_pct": 108.2,
+    "engagement_before": 0.6392,
+    "engagement_after": 0.6625
+   },
+   {
+    "page": "/fr",
+    "sessions_apr1_jun15": 1085,
+    "sessions_jun16_aug31": 1746,
+    "change_pct": 60.9,
+    "engagement_before": 0.8627,
+    "engagement_after": 0.8608
+   },
+   {
+    "page": "/fr/voyage-malaisie",
+    "sessions_apr1_jun15": 369,
+    "sessions_jun16_aug31": 562,
+    "change_pct": 52.3,
+    "engagement_before": 0.7236,
+    "engagement_after": 0.7883
+   },
+   {
+    "page": "/fr/voyage-japon",
+    "sessions_apr1_jun15": 1368,
+    "sessions_jun16_aug31": 1996,
+    "change_pct": 45.9,
+    "engagement_before": 0.7135,
+    "engagement_after": 0.7079
+   },
+   {
+    "page": "/fr/voyage-coree-du-sud",
+    "sessions_apr1_jun15": 417,
+    "sessions_jun16_aug31": 593,
+    "change_pct": 42.2,
+    "engagement_before": 0.7746,
+    "engagement_after": 0.774
+   },
+   {
+    "page": "/fr/voyage-ouzbekistan",
+    "sessions_apr1_jun15": 222,
+    "sessions_jun16_aug31": 307,
+    "change_pct": 38.3,
+    "engagement_before": 0.7748,
+    "engagement_after": 0.7785
+   },
+   {
+    "page": "/fr/departs-garantis-petit-groupe",
+    "sessions_apr1_jun15": 155,
+    "sessions_jun16_aug31": 210,
+    "change_pct": 35.5,
+    "engagement_before": 0.8129,
+    "engagement_after": 0.9095
+   },
+   {
+    "page": "/fr/voyage-inde-du-sud",
+    "sessions_apr1_jun15": 184,
+    "sessions_jun16_aug31": 237,
+    "change_pct": 28.8,
+    "engagement_before": 0.7609,
+    "engagement_after": 0.7722
+   },
+   {
+    "page": "/fr/voyage-laos",
+    "sessions_apr1_jun15": 244,
+    "sessions_jun16_aug31": 299,
+    "change_pct": 22.5,
+    "engagement_before": 0.6885,
+    "engagement_after": 0.7391
+   },
+   {
+    "page": "/fr/voyage-thailande",
+    "sessions_apr1_jun15": 506,
+    "sessions_jun16_aug31": 552,
+    "change_pct": 9.1,
+    "engagement_before": 0.7747,
+    "engagement_after": 0.712
+   }
+  ]
+ },
+ "data_quality_issues": [
+  {
+   "id": "conversion_tracking_gap",
+   "severity": "critical",
+   "detail": "No key events fired on www before July 2026. April-June 2026 conversion data does not exist.",
+   "evidence": {
+    "key_events_by_month": {
+     "202604": 0,
+     "202605": 0,
+     "202606": 0,
+     "202607": 401,
+     "202608": 1032
+    }
+   }
+  },
+  {
+   "id": "duplicate_conversion_events",
+   "severity": "critical",
+   "detail": "inquiry_submitted (735 events / 696 users) and demande_voyage_fr (706 / 668) both fire per lead on www. Both are marked as key events.",
+   "impact": "All reported conversion counts on www are roughly 2x actual leads."
+  },
+  {
+   "id": "two_businesses_in_one_number",
+   "severity": "critical",
+   "detail": "connect.shantitravel.com handles existing-guest forms and reviews, not sales leads, but its submissions are counted as key events.",
+   "evidence": {
+    "property_key_events": 4085,
+    "www_key_events": 1433,
+    "connect_key_events": 2652,
+    "non_lead_share": 0.649
+   }
+  },
+  {
+   "id": "junk_traffic",
+   "severity": "medium",
+   "detail": "826 Jul-Aug sessions have landing page (not set) with 4 percent engagement and 96 percent bounce. Separately 3,015 Apr-Aug sessions have newVsReturning (not set) at 0.4 percent engagement.",
+   "impact": "Deflates site-wide engagement and conversion rates."
+  },
+  {
+   "id": "dev_traffic_in_production",
+   "severity": "low",
+   "detail": "localhost, Vercel preview deployments and translate.goog appear as hostnames in the production property, roughly 90 sessions."
+  },
+  {
+   "id": "perplexity_misclassified",
+   "severity": "low",
+   "detail": "Perplexity sessions land in Unassigned, not the native AI Assistant channel. Known GA4 gap."
+  },
+  {
+   "id": "cross_domain_attribution",
+   "severity": "medium",
+   "detail": "connect.shantitravel.com starts its own sessions with source (direct) and (not set) rather than continuing sessions from www."
+  }
+ ]
+}

@@ -56,6 +56,23 @@ node tools/write-data.js --reindex     # manifest only
 
 **Why this exists:** the GSC "Generative AI Features" report is not exposed by the GSC API (the `searchAppearance` dimension returns zero rows for it even when the UI shows ~150k impressions — verified Aug 2026), so it can only arrive as a manual CSV export. Rather than adding a monthly Sidebar paste, Claude converts the CSVs and commits the result here. Automating the *Sheet* side instead was attempted and abandoned: `clasp run` needs the Apps Script API + an OAuth consent that Google blocks for clasp's public client ("This app is blocked"), and the alternative — a public `doPost` web app — was rejected as it means an internet-reachable endpoint that can write to the Sheet.
 
+### 2.2c GA4 deep-dive — `data/ga4_deep/report.json` (added Sep 2026) — a THIRD, different pattern
+
+**Do not confuse this with §2.2b.** It's not month-keyed at all — one file, one page (`GA4 Analyse Avr–Août`, `secGA4Deep()` in `index.html`), rendered identically regardless of which month is selected in the switcher. This was a deliberate choice (see below), not a limitation of the mechanism.
+
+- Fetched once in `loadAllData()` as a plain `fetch('data/ga4_deep/report.json')` into a global `GA4_DEEP` — it does **not** go through `fetchRepoManifest()`/`fetchRepoTab()`/`mergeRepoInto()`, is **not** listed in `data/index.json`, and does **not** participate in the MONTHS auto-discovery in `init()`. If the file is missing, the page renders `noData()` and everything else is unaffected.
+- Source data: `ga4-report/` — a direct GA4 Data API pull (`ga.py`, `pull.py`/`pull2.py`/`pull3.py`, `build.py`), covering Apr–Aug 2026 with Apr–Aug 2025 as YoY comparison. Full detail, findings, and the three GA4 tracking defects (all shipped *uncorrected*, only caveated — see `meta.key_event_inflation_factor`) are in `ga4-report/GA4-HANDOFF.md`, `ga4-report/ga4-performance-report-apr-aug-2026.md`, and `ga4-report/ga4-data-quality-annex.md`. Don't repeat that detail here — read those files.
+- `landing_pages` in `data/ga4_deep/report.json` is the **full 200-row list** (pulled from `ga4-raw.json`'s `cw_landing`, not the 39-row cap the source `ga4-deep-dive.json` shipped with) — the "never truncate to top-N" rule from §2.2b applies here too.
+- **Credentials:** the GA4 service-account key is not in this repo and must never be — see `ga4-report/GA4-HANDOFF.md` §2 for its current location and the standing instruction to rotate it (it was pasted into a chat session once already).
+
+**This replaces Coupler.io for GA4, as of the August 2026 update — Karan is stopping the Coupler dataflows.** That means the *original* `ga4`/`ga4_channels` Sheet tabs and the Coupler-fed `secGA4` page (§2.3, "Google Analytics 4") **will start showing stale/no data for new months** — this was a known, accepted trade-off (not a bug) discussed explicitly before the switch. Both the old tab and its code are left untouched per instruction; nothing was deleted.
+
+**Refresh cadence:** monthly, run by Karan (he holds the GA4 key locally):
+```bash
+cd ga4-report && export GA4_KEY="/path/to/key.json" && python pull.py && python pull2.py && python pull3.py && python build.py
+```
+He shares the resulting JSON in chat; Claude reshapes it (full landing-page list, matches `secGA4Deep()`'s expected shape) and places it at `data/ga4_deep/report.json` directly — no `write-data.js` helper for this one, since it isn't month-keyed and would break `--reindex`'s assumptions if run through it.
+
 ### 2.2 Sheet tabs (each is `month | label | json` except `shared` and `ga4`/`ga4_channels`)
 
 | Tab | Format | Populated by | Notes |
@@ -168,7 +185,7 @@ The Sidebar/Sheet flow described below still exists and still works (nothing was
 
 ## 7. Outstanding / recently discussed but not built
 
-- **Phase 2 recommendations** (from a deep two-phase analysis of a colleague's GSC decline report) — a prioritized list of dashboard additions: YoY comparison columns + backfilling 2025 data before it ages out of GSC (top priority), a demand/search-volume index per destination, brand-vs-nonbrand trend line, CTR-at-stable-position tracker (proxy for AI Overview erosion), commercial-vs-informational query split, a "GEO funnel" (bot crawls → AI citations → AI referral visits → GA4 conversions), SERP feature ownership count, conversions-per-landing-page via GA4 key events, an indexation health panel. None of this is built yet — see conversation history for full detail if resuming this thread.
+- **Phase 2 recommendations** (from a deep two-phase analysis of a colleague's GSC decline report) — a prioritized list of dashboard additions: YoY comparison columns + backfilling 2025 data before it ages out of GSC (**delivered for GA4, Sep 2026 — see §2.2c and the "GA4 Analyse Avr–Août" page; GSC-side YoY/backfill is still open**), a demand/search-volume index per destination, brand-vs-nonbrand trend line, CTR-at-stable-position tracker (proxy for AI Overview erosion), commercial-vs-informational query split, a "GEO funnel" (bot crawls → AI citations → AI referral visits → GA4 conversions) — **the last leg (AI Assistant channel sessions → conversions) is delivered in §2.2c's `ai_traffic`**, SERP feature ownership count, conversions-per-landing-page via GA4 key events (**delivered, §2.2c**), an indexation health panel. The rest is still unbuilt — see conversation history for full detail if resuming this thread.
 - **hreflang bug investigation** — confirmed (via live page-source comparisons + a 144-row Ahrefs Site Audit export) that the site's hreflang failure is a **template-level bug**, isolated to guide pages (72% of all errors) and program pages (15%), NOT a Strapi content-linking issue as a colleague (Sébastien) initially theorized. Destination pages render hreflang correctly; guide/program pages don't, even when Strapi locales are correctly linked. This is now a developer ticket, not a content/CMS task. Full technical reasoning and the falsification tests are in conversation history if needed again.
 - **A separate `og:locale:alternate` duplication bug** was spotted on the homepage (French listed twice) — flagged but not yet investigated further.
 
