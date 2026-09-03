@@ -32,7 +32,7 @@ print(f"Pulling {S} .. {E}")
 landing_raw = ga.rows(ga.report(
     ['landingPagePlusQueryString'],
     ['sessions', 'totalUsers', 'newUsers', 'engagedSessions', 'engagementRate', 'bounceRate'],
-    S, E, limit=1000, order=ga.desc('sessions'), dim_filter=WWW
+    S, E, limit=10000, order=ga.desc('sessions'), dim_filter=WWW
 ))
 if isinstance(landing_raw, dict):
     print("ERROR landing:", landing_raw); sys.exit(1)
