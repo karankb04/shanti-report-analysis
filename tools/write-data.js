@@ -11,7 +11,13 @@
  *
  * Le contenu du fichier source est fusionné PAR-DESSUS ce qui vient du Sheet :
  * seules les clés présentes dans le fichier sont remplacées côté dashboard.
- * Onglets valides : vercel, gsc, ahrefs, keywords, ai, deep_analysis
+ * Onglets valides : vercel, gsc, ahrefs, keywords, ai, deep_analysis, ga4, ga4ch
+ *
+ * ga4 / ga4ch (ajoutés sept. 2026, remplacement de Coupler) : le fichier doit
+ * être {"rows":[...]} avec les MÊMES noms de colonnes que l'export Coupler.io
+ * ("Dimension: Landing page", "Session: Session default channel group", …)
+ * — voir ga4-report/pull_august.py qui génère directement ce format.
+ * PAS de reshaping ni de build.py pour ces deux-là.
  */
 
 const fs = require('fs');
@@ -19,7 +25,7 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 const DATA_DIR = path.join(ROOT, 'data');
-const TABS = ['vercel', 'gsc', 'ahrefs', 'keywords', 'ai', 'deep_analysis'];
+const TABS = ['vercel', 'gsc', 'ahrefs', 'keywords', 'ai', 'deep_analysis', 'ga4', 'ga4ch'];
 
 function reindex() {
   const manifest = {};
